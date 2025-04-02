@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="97dcbe20-f65a-4ae9-8f2b-ad8f85ede9a5" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/Front/CSS/style.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Front/JS/script.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Front/Pages/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/Back/.idea/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Back/.idea/encodings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Back/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Back/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.smarttomcat/LinkifyPDF/conf/catalina.policy" beforeDir="false" afterPath="$PROJECT_DIR$/Back/.smarttomcat/LinkifyPDF/conf/catalina.policy" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.smarttomcat/LinkifyPDF/conf/catalina.properties" beforeDir="false" afterPath="$PROJECT_DIR$/Back/.smarttomcat/LinkifyPDF/conf/catalina.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.smarttomcat/LinkifyPDF/conf/context.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Back/.smarttomcat/LinkifyPDF/conf/context.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.smarttomcat/LinkifyPDF/conf/jaspic-providers.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Back/.smarttomcat/LinkifyPDF/conf/jaspic-providers.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.smarttomcat/LinkifyPDF/conf/jaspic-providers.xsd" beforeDir="false" afterPath="$PROJECT_DIR$/Back/.smarttomcat/LinkifyPDF/conf/jaspic-providers.xsd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.smarttomcat/LinkifyPDF/conf/logging.properties" beforeDir="false" afterPath="$PROJECT_DIR$/Back/.smarttomcat/LinkifyPDF/conf/logging.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.smarttomcat/LinkifyPDF/conf/server.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Back/.smarttomcat/LinkifyPDF/conf/server.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.smarttomcat/LinkifyPDF/conf/tomcat-users.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Back/.smarttomcat/LinkifyPDF/conf/tomcat-users.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.smarttomcat/LinkifyPDF/conf/tomcat-users.xsd" beforeDir="false" afterPath="$PROJECT_DIR$/Back/.smarttomcat/LinkifyPDF/conf/tomcat-users.xsd" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.smarttomcat/LinkifyPDF/conf/web.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Back/.smarttomcat/LinkifyPDF/conf/web.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Back/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/supervisor/config/AppConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/Back/src/main/java/supervisor/config/AppConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/supervisor/config/SpringServletInitializer.java" beforeDir="false" afterPath="$PROJECT_DIR$/Back/src/main/java/supervisor/config/SpringServletInitializer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/supervisor/controller/LinkifyPDFController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Back/src/main/java/supervisor/controller/LinkifyPDFController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/supervisor/service/LinkifyPDFService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Back/src/main/java/supervisor/service/LinkifyPDFService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/webapp/WEB-INF/web.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Back/src/main/webapp/WEB-INF/web.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/webapp/index.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/Back/src/main/webapp/index.jsp" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+        <option value="HTML File" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;asharameta&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/asharameta/LinkifyPDF.git&quot;,
+    &quot;accountId&quot;: &quot;ba77b069-347f-481c-9201-ee30654e79a5&quot;
+  }
+}</component>
+  <component name="LogFilters">
+    <option name="FILTER_ERRORS" value="false" />
+    <option name="FILTER_WARNINGS" value="false" />
+    <option name="FILTER_INFO" value="true" />
+    <option name="FILTER_DEBUG" value="true" />
+    <option name="CUSTOM_FILTER" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 4
+}</component>
+  <component name="ProjectId" id="2v2maJiM14trp2lpnQZz1BhIM9K" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.MAIN.executor&quot;: &quot;Run&quot;,
+    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
+    &quot;Maven. [org.apache.maven.plugins:maven-archetype-plugin:RELEASE:generate].executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;Smart Tomcat.Tomcat: LinkifyPDF.executor&quot;: &quot;Run&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.poratu.idea.plugins.tomcat.setting.TomcatServersConfigurable&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\admin\Desktop\lllll\LinkifyPDF\Back" />
+      <recent name="C:\Users\admin\Desktop\lllll\LinkifyPDF\src\main\java" />
+    </key>
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="common" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Smart Tomcat.Tomcat: LinkifyPDF">
+    <configuration name="MAIN" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="MAIN" />
+      <module name="LinkifyPDF" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="Application" factoryName="Application">
+      <module name="LinkifyPDF" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Tomcat: LinkifyPDF" type="com.poratu.idea.plugins.tomcat" temporary="true">
+      <predefined_log_file enabled="true" id="Tomcat Localhost Log" />
+      <predefined_log_file enabled="true" id="Tomcat Access Log" />
+      <predefined_log_file id="Tomcat Catalina Log" />
+      <predefined_log_file id="Tomcat Manager Log" />
+      <predefined_log_file id="Tomcat Host Manager Log" />
+      <option name="catalinaBase" value="C:\Users\admin\.SmartTomcat\LinkifyPDF\LinkifyPDF" />
+      <option name="contextPath" value="/" />
+      <option name="docBase" value="$PROJECT_DIR$/src/main/webapp" />
+      <option name="extraClassPath" value="" />
+      <option name="tomcatInfo">
+        <TomcatInfo>
+          <option name="name" value="Apache Tomcat/10.1.28" />
+          <option name="path" value="$PROJECT_DIR$/../tomcat/apache-tomcat-10.1.28" />
+          <option name="version" value="10.1.28.0" />
+        </TomcatInfo>
+      </option>
+      <option name="vmOptions" value="" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="com.poratu.idea.plugins.tomcat">
+      <predefined_log_file enabled="true" id="Tomcat Localhost Log" />
+      <predefined_log_file enabled="true" id="Tomcat Access Log" />
+      <predefined_log_file id="Tomcat Catalina Log" />
+      <predefined_log_file id="Tomcat Manager Log" />
+      <predefined_log_file id="Tomcat Host Manager Log" />
+      <option name="catalinaBase" value="" />
+      <option name="contextPath" value="" />
+      <option name="docBase" value="" />
+      <option name="extraClassPath" value="" />
+      <option name="tomcatInfo">
+        <TomcatInfo>
+          <option name="name" value="Apache Tomcat/10.1.28" />
+          <option name="path" value="$PROJECT_DIR$/../tomcat/apache-tomcat-10.1.28" />
+          <option name="version" value="10.1.28.0" />
+        </TomcatInfo>
+      </option>
+      <option name="vmOptions" value="" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="Application.MAIN" />
+      <item itemvalue="Smart Tomcat.Tomcat: LinkifyPDF" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Smart Tomcat.Tomcat: LinkifyPDF" />
+        <item itemvalue="Application.MAIN" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="97dcbe20-f65a-4ae9-8f2b-ad8f85ede9a5" name="Changes" comment="" />
+      <created>1743351606416</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1743351606416</updated>
+    </task>
+    <servers />
+  </component>
+</project>
