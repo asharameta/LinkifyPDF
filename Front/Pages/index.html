@@ -9,13 +9,16 @@
 </head>
 <body>
     <h1>UPLOAD YOUR PDF FILE HERE</h1>
+    <input type="button" class="sendData" id="send-data-btn" value="SEND MEEEE"/>
 
     <div class="container">
-        <input type="file" id="upload-pdf-file" accept="application/pdf">
-        <div class="pdf-wrapper">
+        <div class="pdf-wrapper" style="position: relative;">
             <canvas id="pdfCanvas"></canvas>
             <div id="overlay"></div>
         </div>
+        <input type="file" id="upload-pdf-file" accept="application/pdf">
+
     </div>
+
 </body>
 </html>
