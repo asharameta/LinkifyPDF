@@ -50,12 +50,12 @@ public class Selection {
 
     @Override
     public String toString() {
-        return "Selection{" +
-                "url=" + url +
-                "x=" + x +
-                "y=" + y +
-                "width=" + width +
-                "height=" + height +
+        return "Selection{" + "\n"+
+                "url=" + url + "\n"+
+                "x=" + x + "\n"+
+                "y=" + y + "\n"+
+                "width=" + width + "\n"+
+                "height=" + height + "\n"+
                 '}';
     }
 }

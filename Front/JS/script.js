@@ -10,9 +10,7 @@ window.onload = () => {
     console.info("started!");
 
     createContextMenu(); // Ensure the context menu is created after the body is loaded
-
     createEventHandlers();
-
 };
 
 function createContextMenu() {
@@ -30,7 +28,7 @@ function createContextMenu() {
     // Hide menu when clicking outside
     document.addEventListener("click", () => (contextMenu.style.display = "none"));
 
-    window.oncontextmenu = contextMenu;
+    window.contextmenu = contextMenu;
 }
 
 function createEventHandlers() {
@@ -108,6 +106,19 @@ function createEventHandlers() {
     });
 }
 
+function loadPDF(pdfData) {
+    // Initialize the PDF.js library with the provided ArrayBuffer
+    pdfjsLib.getDocument({ data: pdfData }).promise
+        .then((pdf) => {
+            pdfInstance = pdf;
+            console.log("PDF loaded successfully");
+            renderPage(1); // Render the first page
+        })
+        .catch((error) => {
+            console.error("Error loading PDF:", error);
+        });
+}
+
 function showContextMenu(event, box) {
     const menu = window.contextMenu;
     menu.style.left = `${event.pageX}px`;
@@ -123,7 +134,7 @@ function editHyperlink(box) {
         box.dataset.url = newUrl;
         box.querySelector("a").href = newUrl;
     }
-    window.oncontextmenu.style.display = "none";
+    window.contextmenu.style.display = "none";
 }
 
 function processUrl(url) {
@@ -147,13 +158,6 @@ function drawSelectionBox(box) {
     box.style.width = `${Math.abs(endX - startX)}px`;
     box.style.height = `${Math.abs(endY - startY)}px`;
     box.style.display = "block";
-}
-
-function processUrl(url) {
-    if (!url.match(/^(http:\/\/|https:\/\/|mailto:|tel:)/)) {
-        return "http://" + url;
-    }
-    return url;
 }
 
 let selectedAreas = [];
@@ -206,23 +210,6 @@ function addHyperlink(selectionBox) {
     makeDraggable(selectionBox);
 }
 
-function showContextMenu(event, box) {
-    contextMenu.style.left = `${event.pageX}px`;
-    contextMenu.style.top = `${event.pageY}px`;
-    contextMenu.style.display = "block";
-    contextMenu.targetBox = box;
-}
-
-function editHyperlink(box) {
-    let newUrl = prompt("Edit the hyperlink URL:", box.dataset.url);
-    if (newUrl) {
-        newUrl = processUrl(newUrl);
-        box.dataset.url = newUrl;
-        box.querySelector("a").href = newUrl;
-    }
-    contextMenu.style.display = "none";
-}
-
 function makeDraggable(element) {
     let offsetX, offsetY, isDragging = false;
 
@@ -253,24 +240,6 @@ function makeDraggable(element) {
         }
     });
 }
-
-let pdfBase64 = "";
-function loadPDF(pdfData) {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-        pdfBase64 = e.target.result.split(',')[1]; // Remove the base64 header part
-        // Now initialize the PDF.js library
-        pdfjsLib.getDocument({ data: pdfData }).promise.then((pdf) => {
-            pdfInstance = pdf;
-            console.log("PDF loaded successfully");
-            renderPage(1); // Render the first page
-        }).catch((error) => {
-            console.error("Error loading PDF:", error);
-        });
-    };
-    reader.readAsDataURL(new Blob([pdfData]));
-}
-
 
 async function renderPage(pageNumber) {
     const { canvas, ctx, overlay } = getCanvasElements();
@@ -306,20 +275,24 @@ function getCanvasElements() {
 }
 
 async function sendDataToBackend() {
-    const payload = {
-        pdf: pdfBase64,
-        selections: selectedAreas,
-    };
+    const file = document.querySelector('#upload-pdf-file').files[0];
+    if (!file) {
+        alert("Please upload a PDF file first.");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("json", new Blob([JSON.stringify(selectedAreas)], { type: "application/json" }));
     
     try {
-        const response = await fetch('http://localhost:8080/send_pdf', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
-        });
-
+        await fetch('http://localhost:8080/pdfData', {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.text())
+        .then(console.log)
+        .catch(err => console.error("Error sending data:", err));
     } catch (error) {
         console.error("Error sending data:", error);
     }
