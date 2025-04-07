@@ -7,9 +7,9 @@ let currentSelectionBox = null;
 let hyperlinks = [];
 
 window.onload = () => {
-    console.info("started!");
+    console.info("started home page!");
 
-    createContextMenu(); // Ensure the context menu is created after the body is loaded
+    createContextMenu();
     createEventHandlers();
 };
 
@@ -25,7 +25,6 @@ function createContextMenu() {
     contextMenu.appendChild(editOption);
     document.body.appendChild(contextMenu);
 
-    // Hide menu when clicking outside
     document.addEventListener("click", () => (contextMenu.style.display = "none"));
 
     window.contextmenu = contextMenu;
@@ -59,7 +58,7 @@ function createEventHandlers() {
     });
 
     overlay.addEventListener('mousedown', (event) => {
-        if (event.button === 2) return; // Ignore right-click
+        if (event.button === 2) return;
         if (event.target !== overlay) return;
         isSelecting = true;
         const rect = overlay.getBoundingClientRect();
@@ -85,21 +84,18 @@ function createEventHandlers() {
 
     document.addEventListener("contextmenu", (event) => {
         const targetBox = event.target.closest(".hyperlink-container");
-        if (!targetBox) return; // Only trigger for hyperlink boxes
+        if (!targetBox) return;
 
         event.preventDefault();
 
-        // Get or create the context menu
         let contextMenu = document.getElementById("context-menu");
         if (!contextMenu) {
             createContextMenu();
             contextMenu = document.getElementById("context-menu");
         }
 
-        // Store the target hyperlink box for later use in editing
         contextMenu.targetBox = targetBox;
 
-        // Position the menu at the mouse cursor
         contextMenu.style.left = `${event.pageX}px`;
         contextMenu.style.top = `${event.pageY}px`;
         contextMenu.style.display = "block";
@@ -107,12 +103,11 @@ function createEventHandlers() {
 }
 
 function loadPDF(pdfData) {
-    // Initialize the PDF.js library with the provided ArrayBuffer
     pdfjsLib.getDocument({ data: pdfData }).promise
         .then((pdf) => {
             pdfInstance = pdf;
             console.log("PDF loaded successfully");
-            renderPage(1); // Render the first page
+            renderPage(1);
         })
         .catch((error) => {
             console.error("Error loading PDF:", error);
@@ -283,12 +278,16 @@ async function sendDataToBackend() {
 
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("json", new Blob([JSON.stringify(selectedAreas)], { type: "application/json" }));
+    formData.append("json", new Blob(
+        [JSON.stringify(selectedAreas)],
+        { type: "application/json" }
+      ));
     
+    console.table(formData);
     try {
         await fetch('http://localhost:8080/pdfData', {
             method: "POST",
-            body: formData
+            body: formData,
         })
         .then(res => res.text())
         .then(console.log)

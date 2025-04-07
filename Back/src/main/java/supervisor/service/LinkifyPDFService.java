@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import supervisor.model.PDFData;
 import supervisor.model.PDFDataDAO;
 
+import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -22,7 +23,7 @@ public class LinkifyPDFService {
         return pdfData.getPDFData(id);
     }
 
-    public void addPdfData(PDFData data){
+    public void addPdfData(PDFData data) throws IOException {
         pdfData.addPDFData(data);
     }
 

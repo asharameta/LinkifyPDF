@@ -1,15 +1,19 @@
 package supervisor.controller;
 
-import org.springframework.http.HttpStatus;
+import jakarta.mail.MessagingException;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import supervisor.mapper.PDFDataMapper;
+import supervisor.model.PDFData;
+import supervisor.model.Selection;
+
+import java.io.IOException;
+import java.util.List;
+import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import supervisor.model.PDFData;
-import supervisor.model.Selection;
 import supervisor.service.LinkifyPDFService;
-
-import java.util.List;
 
 @CrossOrigin(origins = "http://127.0.0.1:5500")
 @Controller
@@ -20,42 +24,38 @@ public class LinkifyPDFController {
         this.linkifyPDFService = linkifyPDFService;
     }
 
-
-
-    @GetMapping("/hello")
-    public String sayHello() {
-        return "Hello LinkifyPDF!";
-    }
-
-    @PostMapping("/pdfData")
+    @PostMapping(value = "/pdfData", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseBody
     public ResponseEntity<?> addPDFData(
             @RequestPart("file") MultipartFile file,
             @RequestPart("json") List<Selection> jsonData
-    ) {
-        var pdfData = new PDFData(file, jsonData);
+    ) throws IOException {
+        System.out.println(jsonData);
+        PDFData pdfData = new PDFData(file, jsonData);
         linkifyPDFService.addPdfData(pdfData);
         return new ResponseEntity<>(pdfData, HttpStatus.CREATED);
     }
 
     @GetMapping("/pdfData/{id}")
     public ResponseEntity<?> getPDFData(@PathVariable int id){
-        var pdfToReturn = linkifyPDFService.getPdfData(id);
+        var pdfData = linkifyPDFService.getPdfData(id);
 
-        if (pdfToReturn == null) {
+        if (pdfData == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+        var pdfToReturn = PDFDataMapper.convertToDTO(pdfData);
 
         return new ResponseEntity<>(pdfToReturn, HttpStatus.OK);
     }
 
     @GetMapping("/pdfData")
-    public ResponseEntity<?> getAllPDFData(){
-        var pdfToReturn = linkifyPDFService.getAllPdfData();
+    public ResponseEntity<?> getAllPDFData() throws IOException, MessagingException {
+        var pdfData = linkifyPDFService.getAllPdfData();
 
-        if (pdfToReturn.isEmpty()) {
+        if (pdfData.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+        var pdfToReturn = PDFDataMapper.convertToDTOList(pdfData);
 
         return new ResponseEntity<>(pdfToReturn, HttpStatus.OK);
     }
@@ -63,7 +63,7 @@ public class LinkifyPDFController {
     @DeleteMapping("/pdfData/{id}")
     public ResponseEntity<?> deletePDFData(@PathVariable int id){
         //#TODO
-        return null;
+        return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
     }
 
 }

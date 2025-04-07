@@ -19,6 +19,10 @@ public class PDFData {
         return pdf;
     }
 
+    public String getPDF_PATH() {
+        return "C:/Users/admin/Desktop/lllll/LinkifyPDF/Back/wwwroot/pdfs";
+    }
+
     public void setPdf(MultipartFile pdf) {
         this.pdf = pdf;
     }
@@ -34,8 +38,9 @@ public class PDFData {
     @Override
     public String toString() {
         return "PDFData{" +"\n"+
-                "url: "+pdf+"\n"+
+                "url: "+pdf.getOriginalFilename()+"\n"+
                 selections.toString() +"\n"+
                 '}';
     }
 }
+

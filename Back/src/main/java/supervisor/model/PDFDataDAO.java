@@ -1,7 +1,15 @@
 package supervisor.model;
 
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class PDFDataDAO {
     public List<PDFData> tempPDF;
@@ -18,8 +26,18 @@ public class PDFDataDAO {
         return tempPDF.get(i);
     }
 
-    public void addPDFData(PDFData data){
-        System.out.println(data.toString());
+    public void addPDFData(PDFData data) throws IOException {
+        MultipartFile pdfFile = data.getPdf();
+
+        Path destinationDir = Paths.get(data.getPDF_PATH());
+        if (Files.notExists(destinationDir)) {
+            Files.createDirectories(destinationDir);
+        }
+
+        String filename = Objects.requireNonNull(pdfFile.getOriginalFilename());
+        Path finalPath = destinationDir.resolve(filename);
+        Files.copy(pdfFile.getInputStream(), finalPath, StandardCopyOption.REPLACE_EXISTING);
+
         tempPDF.add(data);
     }
 
