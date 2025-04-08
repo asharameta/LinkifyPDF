@@ -7,8 +7,6 @@ let currentSelectionBox = null;
 let hyperlinks = [];
 
 window.onload = () => {
-    console.info("started home page!");
-
     createContextMenu();
     createEventHandlers();
 };
@@ -31,12 +29,11 @@ function createContextMenu() {
 }
 
 function createEventHandlers() {
-    const { canvas, overlay } = getCanvasElements();
+    const { overlay } = getCanvasElements();
 
     const sendDataButton = document.querySelector('.sendData');
     if (sendDataButton) {
         sendDataButton.addEventListener('click', async () => {
-            console.info("Button clicked!");
             await sendDataToBackend();
         });
     } else {
@@ -44,7 +41,6 @@ function createEventHandlers() {
     }
 
     document.querySelector('#upload-pdf-file').addEventListener('change', function (event) {
-        console.info("File upload triggered");
         const file = event.target.files[0];
         if (file && file.type === "application/pdf") {
             const reader = new FileReader();
@@ -58,8 +54,7 @@ function createEventHandlers() {
     });
 
     overlay.addEventListener('mousedown', (event) => {
-        if (event.button === 2) return;
-        if (event.target !== overlay) return;
+        if (event.button === 2 || event.target !== overlay) return;
         isSelecting = true;
         const rect = overlay.getBoundingClientRect();
         startX = event.clientX - rect.left;
@@ -106,7 +101,6 @@ function loadPDF(pdfData) {
     pdfjsLib.getDocument({ data: pdfData }).promise
         .then((pdf) => {
             pdfInstance = pdf;
-            console.log("PDF loaded successfully");
             renderPage(1);
         })
         .catch((error) => {
@@ -202,38 +196,6 @@ function addHyperlink(selectionBox) {
     });
 
     hyperlinks.push(selectionBox);
-    makeDraggable(selectionBox);
-}
-
-function makeDraggable(element) {
-    let offsetX, offsetY, isDragging = false;
-
-    element.addEventListener('mousedown', (e) => {
-        if (e.target.tagName === "A" || e.target.classList.contains('close-btn')) return;
-        isDragging = true;
-        const rect = element.getBoundingClientRect();
-        offsetX = e.clientX - rect.left;
-        offsetY = e.clientY - rect.top;
-        element.style.cursor = "grabbing";
-        e.preventDefault();
-    });
-
-    document.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        const overlay = getCanvasElements().overlay;
-        const overlayRect = overlay.getBoundingClientRect();
-        let newLeft = e.clientX - overlayRect.left - offsetX;
-        let newTop = e.clientY - overlayRect.top - offsetY;
-        element.style.left = newLeft + 'px';
-        element.style.top = newTop + 'px';
-    });
-
-    document.addEventListener('mouseup', () => {
-        if (isDragging) {
-            isDragging = false;
-            element.style.cursor = "grab";
-        }
-    });
 }
 
 async function renderPage(pageNumber) {
@@ -258,7 +220,6 @@ async function renderPage(pageNumber) {
 
     renderTask = page.render(renderContext);
     await renderTask.promise;
-    console.log("Page rendered");
 }
 
 function getCanvasElements() {
@@ -283,14 +244,11 @@ async function sendDataToBackend() {
         { type: "application/json" }
       ));
     
-    console.table(formData);
     try {
         await fetch('http://localhost:8080/pdfData', {
             method: "POST",
             body: formData,
         })
-        .then(res => res.text())
-        .then(console.log)
         .catch(err => console.error("Error sending data:", err));
     } catch (error) {
         console.error("Error sending data:", error);
