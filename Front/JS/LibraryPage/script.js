@@ -11,7 +11,7 @@ window.onload = async () => {
 
 async function getPDFData() {
     try {
-        const response = fetch('http://localhost:8080/pdfData')
+        const response = fetch('http://localhost:8080/pdfs')
             .then(res => res.json())
             .then(data => {
                 const finalArray = data.map(element => {

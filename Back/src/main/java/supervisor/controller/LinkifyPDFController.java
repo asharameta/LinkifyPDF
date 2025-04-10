@@ -24,7 +24,7 @@ public class LinkifyPDFController {
         this.linkifyPDFService = linkifyPDFService;
     }
 
-    @PostMapping(value = "/pdfData", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/pdfs", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseBody
     public ResponseEntity<?> addPDFData(
             @RequestPart("file") MultipartFile file,
@@ -36,7 +36,7 @@ public class LinkifyPDFController {
         return new ResponseEntity<>(pdfData, HttpStatus.CREATED);
     }
 
-    @GetMapping("/pdfData/{id}")
+    @GetMapping("/pdfs/{id}")
     public ResponseEntity<?> getPDFData(@PathVariable int id){
         var pdfData = linkifyPDFService.getPdfData(id);
 
@@ -48,7 +48,7 @@ public class LinkifyPDFController {
         return new ResponseEntity<>(pdfToReturn, HttpStatus.OK);
     }
 
-    @GetMapping("/pdfData")
+    @GetMapping("/pdfs")
     public ResponseEntity<?> getAllPDFData() throws IOException, MessagingException {
         var pdfData = linkifyPDFService.getAllPdfData();
 
@@ -60,7 +60,7 @@ public class LinkifyPDFController {
         return new ResponseEntity<>(pdfToReturn, HttpStatus.OK);
     }
 
-    @DeleteMapping("/pdfData/{id}")
+    @DeleteMapping("/pdfs/{id}")
     public ResponseEntity<?> deletePDFData(@PathVariable int id){
         //#TODO
         return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);

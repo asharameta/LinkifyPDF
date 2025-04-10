@@ -245,7 +245,7 @@ async function sendDataToBackend() {
       ));
     
     try {
-        await fetch('http://localhost:8080/pdfData', {
+        await fetch('http://localhost:8080/pdfs', {
             method: "POST",
             body: formData,
         })
