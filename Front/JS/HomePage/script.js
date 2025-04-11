@@ -18,14 +18,37 @@ function createContextMenu() {
     const editOption = document.createElement("div");
     editOption.innerText = "Edit Link";
     editOption.classList.add("context-menu-item");
-    editOption.onclick = () => editHyperlink(contextMenu.targetBox);
+    editOption.onclick = async () => await editHyperlink(contextMenu.targetBox);
 
-    contextMenu.appendChild(editOption);
+    const deleteOption = document.createElement("div");
+    deleteOption.innerText = "Delete Link";
+    deleteOption.classList.add("context-menu-item");
+    deleteOption.onclick = () => {
+        const { overlay } = getCanvasElements();
+        overlay.removeChild(contextMenu.targetBox);
+        selectedAreas = selectedAreas.filter(
+            area => area !== contextMenu.targetBox
+        );
+        hyperlinks = hyperlinks.filter(
+            h => h !== contextMenu.targetBox
+        );
+    };
+
+    const cancelOption = document.createElement("div");
+    cancelOption.innerText = "Cancel";
+    cancelOption.classList.add("context-menu-item");
+    cancelOption.onclick = () => {
+        contextMenu.style.display = "none";
+    };
+
+    contextMenu.appendChild(editOption); // Already existing
+    contextMenu.appendChild(deleteOption);
+    contextMenu.appendChild(cancelOption);
     document.body.appendChild(contextMenu);
 
     document.addEventListener("click", () => (contextMenu.style.display = "none"));
 
-    window.contextmenu = contextMenu;
+    window.customContextMenu = contextMenu;
 }
 
 function createEventHandlers() {
@@ -40,7 +63,34 @@ function createEventHandlers() {
         console.error("Button with class '.sendData' not found.");
     }
 
-    document.querySelector('#upload-pdf-file').addEventListener('change', function (event) {
+
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('upload-pdf-file');
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, e => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, e => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+        });
+    });
+
+    dropZone.addEventListener('drop', e => {
+        const files = e.dataTransfer.files;
+        if (files.length > 0 && files[0].type === "application/pdf") {
+            fileInput.files = files;
+            // Optional: Trigger a change event if needed
+            fileInput.dispatchEvent(new Event('change'));
+        }
+    });
+
+    fileInput.addEventListener('change', function (event) {
         const file = event.target.files[0];
         if (file && file.type === "application/pdf") {
             const reader = new FileReader();
@@ -70,30 +120,33 @@ function createEventHandlers() {
         drawSelectionBox(currentSelectionBox);
     });
 
-    overlay.addEventListener('mouseup', () => {
+    overlay.addEventListener('mouseup', async () => {
         if (!isSelecting || !currentSelectionBox) return;
         isSelecting = false;
-        addHyperlink(currentSelectionBox);
+        await addHyperlink(currentSelectionBox);
         currentSelectionBox = null;
     });
 
     document.addEventListener("contextmenu", (event) => {
-        const targetBox = event.target.closest(".hyperlink-container");
-        if (!targetBox) return;
+        const targetBox = event.target.closest(".selection-box");
 
-        event.preventDefault();
+        if (targetBox) {
+            event.preventDefault(); // Only prevent default if clicking on a box
+            let contextMenu = window.customContextMenu;
+            if (!contextMenu) {
+                createContextMenu();
+                contextMenu = window.customContextMenu;
+            }
 
-        let contextMenu = document.getElementById("context-menu");
-        if (!contextMenu) {
-            createContextMenu();
-            contextMenu = document.getElementById("context-menu");
+            contextMenu.targetBox = targetBox;
+            contextMenu.style.left = `${event.pageX}px`;
+            contextMenu.style.top = `${event.pageY}px`;
+            contextMenu.style.display = "block";
+        } else {
+            // Hide the custom menu if open
+            const menu = window.customContextMenu;
+            if (menu) menu.style.display = "none";
         }
-
-        contextMenu.targetBox = targetBox;
-
-        contextMenu.style.left = `${event.pageX}px`;
-        contextMenu.style.top = `${event.pageY}px`;
-        contextMenu.style.display = "block";
     });
 }
 
@@ -102,28 +155,42 @@ function loadPDF(pdfData) {
         .then((pdf) => {
             pdfInstance = pdf;
             renderPage(1);
+            updateVisibility();
         })
         .catch((error) => {
             console.error("Error loading PDF:", error);
         });
 }
 
+function updateVisibility() {
+    const pdfWrapper = document.querySelector(".pdf-wrapper");
+    const sendDataButton = document.querySelector("#send-data-btn");
+    const uploadContainer = document.querySelector(".upload-container");
+    sendDataButton.style.display = "block";
+    uploadContainer.style.display = "none";
+    pdfWrapper.style.display = "block";
+}
+
 function showContextMenu(event, box) {
-    const menu = window.contextMenu;
+    const menu = window.customContextMenu;
     menu.style.left = `${event.pageX}px`;
     menu.style.top = `${event.pageY}px`;
     menu.style.display = "block";
     menu.targetBox = box;
 }
 
-function editHyperlink(box) {
-    let newUrl = prompt("Edit the hyperlink URL:", box.dataset.url);
+async function editHyperlink(box) {
+    if (!box) return;
+    
+    const { x, y } = getSelectionCoords();
+    let newUrl = await customPrompt("Enter URL", box.dataset.url, x, y);
     if (newUrl) {
         newUrl = processUrl(newUrl);
         box.dataset.url = newUrl;
         box.querySelector("a").href = newUrl;
     }
-    window.contextmenu.style.display = "none";
+    const menu = window.customContextMenu;
+    if (menu) menu.style.display = "none";
 }
 
 function processUrl(url) {
@@ -151,8 +218,9 @@ function drawSelectionBox(box) {
 
 let selectedAreas = [];
 
-function addHyperlink(selectionBox) {
-    const url = prompt("Enter the hyperlink URL:");
+async function addHyperlink(selectionBox) {
+    const { x, y } = getSelectionCoords();
+    const url = await customPrompt("Enter URL", "", x, y);
     if (!url) {
         selectionBox.remove();
         return;
@@ -168,23 +236,7 @@ function addHyperlink(selectionBox) {
     link.style.backgroundColor = "transparent";
     link.style.zIndex = "1";
 
-    const closeButton = document.createElement("button");
-    closeButton.innerHTML = "❌";
-    closeButton.classList.add("close-btn");
-    closeButton.style.position = "absolute";
-    closeButton.style.background = "transparent";
-    closeButton.style.top = "0px";
-    closeButton.style.right = "0px";
-    closeButton.style.zIndex = "2";
-    closeButton.onclick = function (e) {
-        e.stopPropagation();
-        const { overlay } = getCanvasElements();
-        overlay.removeChild(selectionBox);
-        selectedAreas = selectedAreas.filter(h => h !== selectionBox);
-    };
-
     selectionBox.appendChild(link);
-    selectionBox.appendChild(closeButton);
     selectionBox.style.cursor = "grab";
 
     selectedAreas.push({
@@ -242,15 +294,23 @@ async function sendDataToBackend() {
     formData.append("json", new Blob(
         [JSON.stringify(selectedAreas)],
         { type: "application/json" }
-      ));
-    
+    ));
+
     try {
         await fetch('http://localhost:8080/pdfs', {
             method: "POST",
             body: formData,
         })
-        .catch(err => console.error("Error sending data:", err));
+            .catch(err => console.error("Error sending data:", err));
     } catch (error) {
         console.error("Error sending data:", error);
     }
 }
+
+function getSelectionCoords() {
+    const sel = window.getSelection();
+    if (!sel.rangeCount) return { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+    const range = sel.getRangeAt(0).cloneRange();
+    const rect = range.getBoundingClientRect();
+    return { x: rect.left + window.scrollX, y: rect.bottom + window.scrollY };
+  }

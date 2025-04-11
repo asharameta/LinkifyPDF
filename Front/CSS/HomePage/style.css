@@ -10,20 +10,47 @@ body {
     margin: 0;
 }
 
-/* File Upload Input */
-input[type="file"] {
-    margin-bottom: 15px;
-    padding: 8px;
-    border: 1px solid #ccc;
-    background: white;
-    border-radius: 5px;
+.upload-container {
+    border: 2px dashed #6c63ff;
+    background-color: #f9f9ff;
+    border-radius: 1rem;
+    padding: 2rem;
+    text-align: center;
+    transition: background-color 0.3s, border-color 0.3s;
     cursor: pointer;
-}
+    max-width: 400px;
+    margin: auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  }
+  
+  .upload-container.dragover {
+    background-color: #e0e0ff;
+    border-color: #4b4bff;
+  }
+  
+  .upload-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    color: #444;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    cursor: pointer;
+  }
+  
+  .upload-icon {
+    font-size: 3rem;
+  }
+  
+  .upload-text {
+    font-size: 1rem;
+  }
+  
 
 /* PDF Wrapper (Canvas + Overlay) */
 .pdf-wrapper {
     position: relative;
-    display: inline-block;
+    display: none;
     border: 2px solid #ccc;
     border-radius: 10px;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
@@ -45,7 +72,7 @@ input[type="file"] {
     width: 100%;
     height: 100%;
     background: transparent;
-    z-index: 500;
+    z-index: 100;
     cursor:crosshair;
   }
 
@@ -69,7 +96,7 @@ input[type="file"] {
     position: absolute;
     border: 2px dashed #0099ff;
     background: rgba(0, 153, 255, 0.2);
-    z-index: 1000;
+    z-index: 500;
   }
 
 
@@ -84,7 +111,7 @@ input[type="file"] {
     padding: 5px 0;
     min-width: 120px;
     font-family: Arial, sans-serif;
-    z-index: 100;
+    z-index: 1000;
 }
 
 /* Context Menu Items */
@@ -103,9 +130,43 @@ input[type="file"] {
 
 
 #send-data-btn{
+    display: none;
     width: 200px;
     height: 50px;
     background-color: green;
     border: none;
     cursor: pointer;
+    margin-bottom: 10px;
 }
+
+#inline-prompt {
+    background: white;
+    border: 1px solid #ccc;
+    padding: 4px 6px;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    font-family: sans-serif;
+  }
+  
+  #inline-prompt input {
+    width: 200px;
+    padding: 4px;
+    font-size: 14px;
+  }
+  
+  #inline-prompt button {
+    border: none;
+    background: #eee;
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 14px;
+    border-radius: 4px;
+  }
+  
+  #inline-prompt button:hover {
+    background: #ddd;
+  }
+  

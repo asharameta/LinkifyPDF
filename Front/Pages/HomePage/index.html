@@ -6,22 +6,37 @@
         <title>Title</title>
         <link rel="stylesheet" href="/CSS/HomePage/style.css">
         <script src="/JS/HomePage/script.js" type="text/javascript"></script>
+        <script src="/JS/CustomPrompt/script.js" type="text/javascript"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     </head>
 
     <body>
+        <div id="inline-prompt" style="display:none; position:absolute; z-index:10000;">
+            <input type="text" id="inline-prompt-input" placeholder="Enter URL" />
+            <button id="inline-prompt-ok">✔</button>
+            <button id="inline-prompt-cancel">✖</button>
+          </div>
+
         <a href="/Pages/LibraryPage/index.html">GO TO MY LIBRARY PAGE</a>
 
-        <h1>UPLOAD YOUR PDF FILE HERE</h1>
+        <h1>LINKIFY PDF</h1>
         <input type="button" class="sendData" id="send-data-btn" value="SEND MEEEE" />
 
         <div class="container">
-            <div class="pdf-wrapper" style="position: relative;">
+            <div class="pdf-wrapper">
                 <canvas id="pdfCanvas"></canvas>
                 <div id="overlay"></div>
             </div>
-            <input type="file" id="upload-pdf-file" accept="application/pdf">
-
+            <div class="upload-container" id="drop-zone">
+                <input type="file" id="upload-pdf-file" accept="application/pdf" hidden>
+                <label for="upload-pdf-file" class="upload-label">
+                  <div class="upload-icon">📄</div>
+                  <div class="upload-text">
+                    <strong>Click to upload</strong> or drag and drop a PDF file here
+                  </div>
+                </label>
+              </div>
         </div>
+
     </body>
 </html>
