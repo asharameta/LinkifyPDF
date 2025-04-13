@@ -220,13 +220,14 @@ let selectedAreas = [];
 
 async function addHyperlink(selectionBox) {
     const { x, y } = getSelectionCoords();
-    const url = await customPrompt("Enter URL", "", x, y);
+    const url = processUrl(await customPrompt("Enter URL", "", x, y));
     if (!url) {
         selectionBox.remove();
         return;
     }
 
     const link = document.createElement("a");
+
     link.href = url;
     link.target = "_blank";
     link.classList.add("hyperlink");
@@ -238,6 +239,7 @@ async function addHyperlink(selectionBox) {
 
     selectionBox.appendChild(link);
     selectionBox.style.cursor = "grab";
+    selectionBox.dataset.url = url;
 
     selectedAreas.push({
         url: url,

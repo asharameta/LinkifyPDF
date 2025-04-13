@@ -6,6 +6,7 @@ function customPrompt(message, defaultValue = "", x = window.innerWidth/2, y = w
       const cancelBtn = document.getElementById("inline-prompt-cancel");
   
       input.value = defaultValue;
+      input.placeholder = message;
       box.style.left = `${x}px`;
       box.style.top = `${y}px`;
       box.style.display = "flex";
