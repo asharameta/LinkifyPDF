@@ -3,7 +3,6 @@ package supervisor.controller;
 import jakarta.mail.MessagingException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import supervisor.mapper.PDFDataMapper;
 import supervisor.model.PDFData;
 import supervisor.model.Selection;
 
@@ -30,7 +29,6 @@ public class LinkifyPDFController {
             @RequestPart("file") MultipartFile file,
             @RequestPart("json") List<Selection> jsonData
     ) throws IOException {
-        System.out.println(jsonData);
         PDFData pdfData = new PDFData(file, jsonData);
         linkifyPDFService.addPdfData(pdfData);
         return new ResponseEntity<>(pdfData, HttpStatus.CREATED);
@@ -38,32 +36,33 @@ public class LinkifyPDFController {
 
     @GetMapping("/pdfs/{id}")
     public ResponseEntity<?> getPDFData(@PathVariable int id){
-        var pdfData = linkifyPDFService.getPdfData(id);
+        var pdfData = linkifyPDFService.getPdfDTO(id);
 
         if (pdfData == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        var pdfToReturn = PDFDataMapper.convertToDTO(pdfData);
 
-        return new ResponseEntity<>(pdfToReturn, HttpStatus.OK);
+        return new ResponseEntity<>(pdfData, HttpStatus.OK);
     }
 
     @GetMapping("/pdfs")
     public ResponseEntity<?> getAllPDFData() throws IOException, MessagingException {
-        var pdfData = linkifyPDFService.getAllPdfData();
+        var pdfData = linkifyPDFService.getAllPdfDTO();
 
         if (pdfData.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        var pdfToReturn = PDFDataMapper.convertToDTOList(pdfData);
 
-        return new ResponseEntity<>(pdfToReturn, HttpStatus.OK);
+        return new ResponseEntity<>(pdfData, HttpStatus.OK);
     }
 
     @DeleteMapping("/pdfs/{id}")
     public ResponseEntity<?> deletePDFData(@PathVariable int id){
-        //#TODO
-        return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+       boolean isDeleted = linkifyPDFService.deletePdfData(id);
+       if(!isDeleted){
+           return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+       }
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 }

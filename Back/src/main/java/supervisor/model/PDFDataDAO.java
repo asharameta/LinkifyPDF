@@ -41,7 +41,12 @@ public class PDFDataDAO {
         tempPDF.add(data);
     }
 
-    public void deletePDFData(int id){
+    public boolean deletePDFData(int id){
+        PDFData toDelete = getPDFData(id);
+        if(toDelete == null || tempPDF.isEmpty() || !tempPDF.contains(toDelete)) {
+            return false;
+        }
         tempPDF.remove(id);
+        return true;
     }
 }
