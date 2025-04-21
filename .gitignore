@@ -8,10 +8,10 @@ Back/.idea/modules.xml
 Back/.idea/jarRepositories.xml
 Back/.idea/compiler.xml
 Back/.idea/libraries/
+Back/src/main/resources/application.properties
 *.iws
 *.iml
 *.ipr
-/src/main/resources/application.properties
 
 ### Eclipse ###
 .apt_generated
