@@ -1,13 +1,44 @@
 package supervisor.model;
 
-public class Selection {
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "selections")
+public class SelectionEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "pdf_id", nullable = false)
+    private PDFEntity pdf;
+
+    @Column(nullable = false)
     private String url;
+
+    @Column(nullable = false)
     private double x;
+
+    @Column(nullable = false)
     private double y;
+
+    @Column(nullable = false)
     private double width;
+
+    @Column(nullable = false)
     private double height;
 
     // Getters and Setters
+
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
     public String getUrl() {
         return url;
     }

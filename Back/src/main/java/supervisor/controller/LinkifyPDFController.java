@@ -3,8 +3,9 @@ package supervisor.controller;
 import jakarta.mail.MessagingException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import supervisor.model.PDFData;
-import supervisor.model.Selection;
+import supervisor.DTO.PdfDTO;
+import supervisor.model.PDFEntity;
+import supervisor.model.SelectionEntity;
 
 import java.io.IOException;
 import java.util.List;
@@ -27,41 +28,33 @@ public class LinkifyPDFController {
     @ResponseBody
     public ResponseEntity<?> addPDFData(
             @RequestPart("file") MultipartFile file,
-            @RequestPart("json") List<Selection> jsonData
+            @RequestPart("json") List<SelectionEntity> jsonData
     ) throws IOException {
-        PDFData pdfData = new PDFData(file, jsonData);
-        linkifyPDFService.addPdfData(pdfData);
-        return new ResponseEntity<>(pdfData, HttpStatus.CREATED);
+        PDFEntity PDFEntity = new PDFEntity();
+        linkifyPDFService.addPdfData(PDFEntity);
+        return new ResponseEntity<>(PDFEntity, HttpStatus.CREATED);
     }
 
     @GetMapping("/pdfs/{id}")
-    public ResponseEntity<?> getPDFData(@PathVariable int id){
+    public ResponseEntity<PdfDTO> getPDFData(@PathVariable("id") long id) throws IOException {
         var pdfData = linkifyPDFService.getPdfDTO(id);
-
-        if (pdfData == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
 
         return new ResponseEntity<>(pdfData, HttpStatus.OK);
     }
 
     @GetMapping("/pdfs")
-    public ResponseEntity<?> getAllPDFData() throws IOException, MessagingException {
+    public ResponseEntity<List<PdfDTO>> getAllPDFData() {
         var pdfData = linkifyPDFService.getAllPdfDTO();
-
-        if (pdfData.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
 
         return new ResponseEntity<>(pdfData, HttpStatus.OK);
     }
 
     @DeleteMapping("/pdfs/{id}")
-    public ResponseEntity<?> deletePDFData(@PathVariable int id){
-       boolean isDeleted = linkifyPDFService.deletePdfData(id);
-       if(!isDeleted){
-           return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-       }
+    public ResponseEntity<?> deletePDFData(@PathVariable Long id){
+//       boolean isDeleted = linkifyPDFService.deletePdfData(id);
+//       if(!isDeleted){
+//           return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+//       }
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

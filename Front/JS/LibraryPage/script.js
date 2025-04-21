@@ -1,6 +1,7 @@
 window.onload = async () => {
     console.info("started library page!");
 
+    createEventHandlers();
     const data = await getPDFData();
     if (data) {
         loadPDF(data);
@@ -8,6 +9,18 @@ window.onload = async () => {
         console.error("No PDF data received from the backend.");
     }
 };
+
+function createEventHandlers() {
+
+    const sendDataButton = document.querySelector('.sendData');
+    if (sendDataButton) {
+        sendDataButton.addEventListener('click', async () => {
+            await sendDataToBackend();
+        });
+    } else {
+        console.error("Button with class '.sendData' not found.");
+    }
+}
 
 async function getPDFData() {
     try {
