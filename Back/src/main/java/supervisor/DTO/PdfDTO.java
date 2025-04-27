@@ -1,35 +1,54 @@
 package supervisor.DTO;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import supervisor.model.SelectionEntity;
+
+import java.util.Arrays;
 import java.util.List;
 
 public class PdfDTO {
-    private String pdf;
-    private SelectionEntity selectionEntities;
+    private String pdfName;
+    private byte[] pdf;
+    private List<SelectionEntity> selectionEntities;
 
-    public PdfDTO() {
+    public PdfDTO(){}
+
+    public PdfDTO(String pdfName, byte[] pdf, List<SelectionEntity> selectionEntity) throws JsonProcessingException {
+        this.pdfName = pdfName;
+        this.pdf = pdf;
+        this.selectionEntities = selectionEntity;
     }
 
-    public String getPdf(){
+    public String getPdfName() {
+        return pdfName;
+    }
+
+    public void setPdfName(String pdfName) {
+        this.pdfName = pdfName;
+    }
+
+    public byte[] getPdf(){
         return pdf;
     }
 
-    public void setPdf(String pdf) {
+    public void setPdf(byte[] pdf) {
         this.pdf = pdf;
     }
 
-    public SelectionEntity getSelections() {
+    public List<SelectionEntity> getSelections() {
         return selectionEntities;
     }
 
-    public void setSelections(SelectionEntity selectionEntities) {
+    public void setSelections(List<SelectionEntity> selectionEntities) {
         this.selectionEntities = selectionEntities;
     }
 
     public String toString() {
         return "PDFData{" + "\n" +
-                "pdf: " + pdf + "\n" +
-                selectionEntities.toString() + "\n" +
+                "filename: "+ pdfName+"\n"+
+                "pdf: " + Arrays.toString(pdf) + "\n" +
+                selectionEntities + "\n" +
                 '}';
     }
 }

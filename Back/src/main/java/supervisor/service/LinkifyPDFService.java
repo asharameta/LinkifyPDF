@@ -2,22 +2,22 @@ package supervisor.service;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import supervisor.DTO.PdfDTO;
 import supervisor.exception.PdfEntityNoContentException;
 import supervisor.exception.PdfEntityNotFoundException;
 import supervisor.mapper.PDFDataMapper;
 import supervisor.model.PDFEntity;
 import supervisor.model.PdfEntityDAO;
-import supervisor.model.SelectionEntity;
 import supervisor.model.SelectionEntityDAO;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class LinkifyPDFService {
@@ -42,15 +42,26 @@ public class LinkifyPDFService {
         return pdfStoragePath;
     }
 
-    private byte[] retrievePDF(String fileName) throws IOException {
+    private byte[] readPDF(String fileName) throws IOException {
         Path sourcePath = Paths.get(getPDFPath()+"/"+fileName);
         return Files.readAllBytes(sourcePath);
     }
 
+    private void writePDF(byte[] pdfBytes, String filename) throws IOException {
+        Path destinationDir = Paths.get(getPDFPath());
+        if (Files.notExists(destinationDir)) {
+            Files.createDirectories(destinationDir);
+        }
+
+        Path filePath = destinationDir.resolve(filename);
+        Files.write(filePath, pdfBytes);
+    }
+
+
     public List<PdfDTO> getAllPdfDTO(){
         List<byte[]> pdfBytes = pdfDAO.getAllPDFData().stream().map(pdfEntity -> {
             try {
-                return retrievePDF(pdfEntity.getFilename());
+                return readPDF(pdfEntity.getFilename());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -60,7 +71,10 @@ public class LinkifyPDFService {
         if(pdfBytes.isEmpty()){
             throw new PdfEntityNoContentException();
         }
-        return PDFDataMapper.convertToDTOList(selectionEntityDAO.getAllSelectionData(), pdfBytes);
+
+        var selections = selectionEntityDAO.getAllSelectionData();
+
+        return PDFDataMapper.convertToDTOList(selections, pdfBytes);
     }
 
     public PdfDTO getPdfDTO(Long id) throws IOException {
@@ -69,15 +83,24 @@ public class LinkifyPDFService {
         if(PDFEntity==null){
             throw new PdfEntityNotFoundException(id);
         }
-        var selectionEntity = PDFEntity.getSelections();
+        var selectionEntity = selectionEntityDAO.getSelectionData(id);
 
-        byte[] pdfBytes = retrievePDF(PDFEntity.getFilename());
+        byte[] pdfBytes = readPDF(PDFEntity.getFilename());
 
         return PDFDataMapper.convertToDTO(selectionEntity, pdfBytes);
     }
 
-    public void addPdfData(PDFEntity data) throws IOException {
-        //pdfData.addPDFData(data);
+    @Transactional
+    public void addPdfData(PdfDTO data) throws IOException {
+        var pdfBytes = data.getPdf();
+        LocalDateTime writeTime = LocalDateTime.now();
+        writePDF(pdfBytes, data.getPdfName());
+
+        PDFEntity pdfEntity = PDFDataMapper.convertToEntity(data, writeTime);
+
+        Long pdfId = pdfDAO.addPDFData(pdfEntity);
+        var selectionData = data.getSelections();
+        selectionEntityDAO.addSelectionData(selectionData, pdfId);
     }
 
     public void deletePdfData(Long id){

@@ -26,27 +26,31 @@ public class LinkifyPDFController {
 
     @PostMapping(value = "/pdfs", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseBody
-    public ResponseEntity<?> addPDFData(
+    public ResponseEntity<PdfDTO> addPDFData(
             @RequestPart("file") MultipartFile file,
-            @RequestPart("json") List<SelectionEntity> jsonData
+            @RequestPart("json") List<SelectionEntity> selectionEntityList
     ) throws IOException {
-        PDFEntity PDFEntity = new PDFEntity();
-        linkifyPDFService.addPdfData(PDFEntity);
-        return new ResponseEntity<>(PDFEntity, HttpStatus.CREATED);
+        PdfDTO pdfDTO = new PdfDTO(file.getOriginalFilename(), file.getBytes(), selectionEntityList);
+        linkifyPDFService.addPdfData(pdfDTO);
+        return new ResponseEntity<>(pdfDTO, HttpStatus.CREATED);
     }
 
     @GetMapping("/pdfs/{id}")
     public ResponseEntity<PdfDTO> getPDFData(@PathVariable("id") long id) throws IOException {
         var pdfData = linkifyPDFService.getPdfDTO(id);
 
+
         return new ResponseEntity<>(pdfData, HttpStatus.OK);
     }
 
     @GetMapping("/pdfs")
     public ResponseEntity<List<PdfDTO>> getAllPDFData() {
-        var pdfData = linkifyPDFService.getAllPdfDTO();
+        List<PdfDTO> pdfData = linkifyPDFService.getAllPdfDTO();
 
-        return new ResponseEntity<>(pdfData, HttpStatus.OK);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(pdfData);
+        //return new ResponseEntity<>(pdfData, HttpStatus.OK);
     }
 
     @DeleteMapping("/pdfs/{id}")

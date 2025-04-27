@@ -9,6 +9,7 @@ Back/.idea/jarRepositories.xml
 Back/.idea/compiler.xml
 Back/.idea/libraries/
 Back/src/main/resources/application.properties
+Back/wwwroot/pdfs/
 *.iws
 *.iml
 *.ipr

@@ -18,27 +18,21 @@ public class PDFEntity {
     @Column(name = "uploaded_at", nullable = false)
     private LocalDateTime uploadedAt = LocalDateTime.now();
 
-    @OneToMany(mappedBy = "pdf", cascade = CascadeType.ALL, orphanRemoval = true)
-    private SelectionEntity selectionEntities;
+//    @OneToMany(mappedBy = "pdf", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<SelectionEntity> selectionEntities;
 
-
-    public PDFEntity(String filename, LocalDateTime uploadedAt, SelectionEntity selectionEntities) {
-        this.filename = filename;
-        this.uploadedAt = uploadedAt;
-        this.selectionEntities = selectionEntities;
-    }
 
     public PDFEntity() {
 
     }
 
-    public SelectionEntity getSelections() {
-        return selectionEntities;
-    }
-
-    public void setSelections(SelectionEntity selectionEntities) {
-        this.selectionEntities = selectionEntities;
-    }
+//    public List<SelectionEntity> getSelections() {
+//        return selectionEntities;
+//    }
+//
+//    public void setSelections(List<SelectionEntity> selectionEntities) {
+//        this.selectionEntities = selectionEntities;
+//    }
 
     public LocalDateTime getUploadedAt() {
         return uploadedAt;
@@ -67,10 +61,9 @@ public class PDFEntity {
     @Override
     public String toString() {
         return "PdfEntity{" +
-                "id=" + id +
-                ", filename='" + filename + '\'' +
-                ", uploadedAt=" + uploadedAt +
-                ", selections=" + selectionEntities +
+                "id=" + id + "\n"+
+                "filename=" + filename + "\n" +
+                "uploadedAt=" + uploadedAt +"\n"+
                 '}';
     }
 }

@@ -12,11 +12,11 @@ public class SelectionService {
         this.selectionEntityDAO = selectionEntityDAO;
     }
 
-    public List<SelectionEntity> getAllPdfData(){
+    public List<List<SelectionEntity>> getAllSelectionData(){
         return selectionEntityDAO.getAllSelectionData();
     }
 
-    public SelectionEntity getPdfData(Long id){
+    public List<SelectionEntity> getSelectionData(Long id){
         return selectionEntityDAO.getSelectionData(id);
     }
 

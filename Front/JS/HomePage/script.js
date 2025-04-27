@@ -298,6 +298,11 @@ async function sendDataToBackend() {
         { type: "application/json" }
     ));
 
+    console.info("Sending data to backend:", {
+        file: formData.get("file"),
+        json: formData.get("json"),
+    });
+
     try {
         await fetch('http://localhost:8080/pdfs', {
             method: "POST",

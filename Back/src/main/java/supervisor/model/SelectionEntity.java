@@ -28,8 +28,23 @@ public class SelectionEntity {
     @Column(nullable = false)
     private double height;
 
-    // Getters and Setters
+    public SelectionEntity(){}
 
+    public SelectionEntity(String url, double x, double y, double width, double height){
+        this.url = url;
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+    }
+
+    public void setPdf(PDFEntity pdf) {
+        this.pdf = pdf;
+    }
+
+    public PDFEntity getPdf() {
+        return pdf;
+    }
 
     public void setId(Long id) {
         this.id = id;
@@ -82,6 +97,8 @@ public class SelectionEntity {
     @Override
     public String toString() {
         return "Selection{" + "\n"+
+                "id=" + id + "\n"+
+                "pdf=" + pdf + "\n"+
                 "url=" + url + "\n"+
                 "x=" + x + "\n"+
                 "y=" + y + "\n"+

@@ -6,6 +6,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.List;
 
 public class PdfEntityDAO {
@@ -42,19 +43,15 @@ public class PdfEntityDAO {
         }
     }
 
-    public void addPDFData(PDFEntity data) throws IOException {
-//        MultipartFile pdfFile = data.getPdf();
-//
-//        Path destinationDir = Paths.get(data.getPDF_PATH());
-//        if (Files.notExists(destinationDir)) {
-//            Files.createDirectories(destinationDir);
-//        }
-//
-//        String filename = Objects.requireNonNull(pdfFile.getOriginalFilename());
-//        Path finalPath = destinationDir.resolve(filename);
-//        Files.copy(pdfFile.getInputStream(), finalPath, StandardCopyOption.REPLACE_EXISTING);
-//
-//        tempPDF.add(data);
+    public Long addPDFData(PDFEntity data) throws IOException {
+        String sql = "INSERT INTO pdfs (filename, uploaded_at) VALUES (?, ?) RETURNING id";
+
+        return jdbcTemplate.queryForObject(
+                sql,
+                Long.class,
+                data.getFilename(),
+                Timestamp.valueOf(data.getUploadedAt())
+        );
     }
 
     public void deletePDFData(int id){

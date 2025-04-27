@@ -12,13 +12,13 @@ window.onload = async () => {
 
 function createEventHandlers() {
 
-    const sendDataButton = document.querySelector('.sendData');
-    if (sendDataButton) {
-        sendDataButton.addEventListener('click', async () => {
-            await sendDataToBackend();
+    const downloadDataButton = document.querySelector('.downloadData');
+    if (downloadDataButton) {
+        downloadDataButton.addEventListener('click', async (e) => {
+            
         });
     } else {
-        console.error("Button with class '.sendData' not found.");
+        console.error("Button with class '.downloadData' not found.");
     }
 }
 
