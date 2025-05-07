@@ -1,23 +1,28 @@
 package supervisor.service;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import supervisor.DTO.PdfDTO;
 import supervisor.exception.PdfEntityNoContentException;
 import supervisor.exception.PdfEntityNotFoundException;
 import supervisor.mapper.PDFDataMapper;
 import supervisor.model.PDFEntity;
 import supervisor.model.PdfEntityDAO;
+import supervisor.model.SelectionEntity;
 import supervisor.model.SelectionEntityDAO;
+import supervisor.util.PdfLinkingUtil;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class LinkifyPDFService {
@@ -42,39 +47,40 @@ public class LinkifyPDFService {
         return pdfStoragePath;
     }
 
-    private byte[] readPDF(String fileName) throws IOException {
-        Path sourcePath = Paths.get(getPDFPath()+"/"+fileName);
-        return Files.readAllBytes(sourcePath);
-    }
+    private InputStreamResource readPDF(String fileName) throws IOException {
+        Path filePath = Paths.get(getPDFPath(), fileName);
 
-    private void writePDF(byte[] pdfBytes, String filename) throws IOException {
-        Path destinationDir = Paths.get(getPDFPath());
-        if (Files.notExists(destinationDir)) {
-            Files.createDirectories(destinationDir);
+        if (!Files.exists(filePath)) {
+            throw new RuntimeException("File not found on server");
         }
 
-        Path filePath = destinationDir.resolve(filename);
-        Files.write(filePath, pdfBytes);
+        return new InputStreamResource(Files.newInputStream(filePath));
+    }
+
+    public void saveUploadedPdf(MultipartFile file) throws IOException {
+        Path destination = Paths.get(getPDFPath()).resolve(Objects.requireNonNull(file.getOriginalFilename()));
+        Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
     }
 
 
     public List<PdfDTO> getAllPdfDTO(){
-        List<byte[]> pdfBytes = pdfDAO.getAllPDFData().stream().map(pdfEntity -> {
+        List<InputStreamResource> pdfInputStreams = pdfDAO.getAllPDFData().stream().map(pdfEntity -> {
             try {
-                return readPDF(pdfEntity.getFilename());
+                //return readPDF(pdfEntity.getFilename());
+                return new InputStreamResource(Files.newInputStream(Path.of(pdfStoragePath)));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
 
         }).toList();
 
-        if(pdfBytes.isEmpty()){
+        if(pdfInputStreams.isEmpty()){
             throw new PdfEntityNoContentException();
         }
 
         var selections = selectionEntityDAO.getAllSelectionData();
 
-        return PDFDataMapper.convertToDTOList(selections, pdfBytes);
+        return PDFDataMapper.convertToDTOList(pdfInputStreams, selections);
     }
 
     public PdfDTO getPdfDTO(Long id) throws IOException {
@@ -85,22 +91,23 @@ public class LinkifyPDFService {
         }
         var selectionEntity = selectionEntityDAO.getSelectionData(id);
 
-        byte[] pdfBytes = readPDF(PDFEntity.getFilename());
+        var inputStreamResource = readPDF(PDFEntity.getFilename());
 
-        return PDFDataMapper.convertToDTO(selectionEntity, pdfBytes);
+        return PDFDataMapper.convertToDTO(inputStreamResource, selectionEntity);
     }
 
     @Transactional
     public void addPdfData(PdfDTO data) throws IOException {
-        var pdfBytes = data.getPdf();
-        LocalDateTime writeTime = LocalDateTime.now();
-        writePDF(pdfBytes, data.getPdfName());
+        PDFEntity pdfEntity = PDFDataMapper.convertToEntity(data, LocalDateTime.now());
+        List<SelectionEntity> selectionEntities = data.getSelectionEntities();
 
-        PDFEntity pdfEntity = PDFDataMapper.convertToEntity(data, writeTime);
+        Path filePath = Paths.get(getPDFPath(), pdfEntity.getFilename());
+        Path modifiedPdfPath = PdfLinkingUtil.generateLinkedPdf(filePath, selectionEntities);
+        System.out.println(modifiedPdfPath);
+        Files.copy(Files.newInputStream(modifiedPdfPath), modifiedPdfPath);
 
         Long pdfId = pdfDAO.addPDFData(pdfEntity);
-        var selectionData = data.getSelections();
-        selectionEntityDAO.addSelectionData(selectionData, pdfId);
+        selectionEntityDAO.addSelectionData(selectionEntities, pdfId);
     }
 
     public void deletePdfData(Long id){

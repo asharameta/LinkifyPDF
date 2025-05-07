@@ -30,7 +30,9 @@ public class LinkifyPDFController {
             @RequestPart("file") MultipartFile file,
             @RequestPart("json") List<SelectionEntity> selectionEntityList
     ) throws IOException {
-        PdfDTO pdfDTO = new PdfDTO(file.getOriginalFilename(), file.getBytes(), selectionEntityList);
+        linkifyPDFService.saveUploadedPdf(file);
+
+        PdfDTO pdfDTO = new PdfDTO(file.getOriginalFilename(),selectionEntityList);
         linkifyPDFService.addPdfData(pdfDTO);
         return new ResponseEntity<>(pdfDTO, HttpStatus.CREATED);
     }
