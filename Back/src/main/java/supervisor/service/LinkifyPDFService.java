@@ -58,7 +58,17 @@ public class LinkifyPDFService {
     }
 
     public void saveUploadedPdf(MultipartFile file) throws IOException {
-        Path destination = Paths.get(getPDFPath()).resolve(Objects.requireNonNull(file.getOriginalFilename()));
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || originalFilename.isEmpty()) {
+            throw new IllegalArgumentException("Invalid or null filename");
+        }
+
+        Path destination = Paths.get(getPDFPath()).resolve(Objects.requireNonNull(originalFilename));
+
+        if (Files.exists(destination) && Files.isDirectory(destination)) {
+            throw new IllegalArgumentException("Destination path is a directory: " + destination);
+        }
+
         Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
     }
 
@@ -102,9 +112,9 @@ public class LinkifyPDFService {
         List<SelectionEntity> selectionEntities = data.getSelectionEntities();
 
         Path filePath = Paths.get(getPDFPath(), pdfEntity.getFilename());
-        Path modifiedPdfPath = PdfLinkingUtil.generateLinkedPdf(filePath, selectionEntities);
+        Path modifiedPdfPath = PdfLinkingUtil.generateLinkedPdf(filePath, selectionEntities, data.getCanvasHeightInPixels());
         System.out.println(modifiedPdfPath);
-        Files.copy(Files.newInputStream(modifiedPdfPath), modifiedPdfPath);
+        Files.copy(Files.newInputStream(modifiedPdfPath), modifiedPdfPath, StandardCopyOption.REPLACE_EXISTING);
 
         Long pdfId = pdfDAO.addPDFData(pdfEntity);
         selectionEntityDAO.addSelectionData(selectionEntities, pdfId);

@@ -290,17 +290,19 @@ async function sendDataToBackend() {
         alert("Please upload a PDF file first.");
         return;
     }
-
+    const { canvas } = getCanvasElements();
     const formData = new FormData();
     formData.append("file", file);
     formData.append("json", new Blob(
         [JSON.stringify(selectedAreas)],
         { type: "application/json" }
     ));
+    formData.append("canvasHeight", JSON.stringify(canvas.offsetHeight));
 
     console.info("Sending data to backend:", {
         file: formData.get("file"),
         json: formData.get("json"),
+        offsetHeight: formData.get("canvasHeight")
     });
 
     try {

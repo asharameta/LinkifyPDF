@@ -1,10 +1,8 @@
 package supervisor.controller;
 
-import jakarta.mail.MessagingException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import supervisor.DTO.PdfDTO;
-import supervisor.model.PDFEntity;
 import supervisor.model.SelectionEntity;
 
 import java.io.IOException;
@@ -28,11 +26,12 @@ public class LinkifyPDFController {
     @ResponseBody
     public ResponseEntity<PdfDTO> addPDFData(
             @RequestPart("file") MultipartFile file,
-            @RequestPart("json") List<SelectionEntity> selectionEntityList
+            @RequestPart("json") List<SelectionEntity> selectionEntityList,
+            @RequestPart("canvasHeight") String canvasHeight
     ) throws IOException {
         linkifyPDFService.saveUploadedPdf(file);
 
-        PdfDTO pdfDTO = new PdfDTO(file.getOriginalFilename(),selectionEntityList);
+        PdfDTO pdfDTO = new PdfDTO(file.getOriginalFilename(),selectionEntityList, Float.parseFloat(canvasHeight));
         linkifyPDFService.addPdfData(pdfDTO);
         return new ResponseEntity<>(pdfDTO, HttpStatus.CREATED);
     }

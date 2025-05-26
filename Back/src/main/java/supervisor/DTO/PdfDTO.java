@@ -13,12 +13,17 @@ public class PdfDTO {
     private String fileName;
     private String downloadUrl;
     private List<SelectionEntity> selectionEntities;
-
-    public PdfDTO(){}
+    private double canvasHeightInPixels;
 
     public PdfDTO(String fileName, List<SelectionEntity> selectionEntities) {
         this.fileName = fileName;
         this.selectionEntities = selectionEntities;
+    }
+
+    public PdfDTO(String fileName, List<SelectionEntity> selectionEntities, double canvasHeightInPixels) {
+        this.fileName = fileName;
+        this.selectionEntities = selectionEntities;
+        this.canvasHeightInPixels = canvasHeightInPixels;
     }
 
     public void setSelectionEntities(List<SelectionEntity> selectionEntities) {
@@ -47,6 +52,14 @@ public class PdfDTO {
 
     public void setDownloadUrl(String downloadUrl) {
         this.downloadUrl = downloadUrl;
+    }
+
+    public double getCanvasHeightInPixels() {
+        return canvasHeightInPixels;
+    }
+
+    public void setCanvasHeightInPixels(double canvasHeightInPixels) {
+        this.canvasHeightInPixels = canvasHeightInPixels;
     }
 
     public String getDownloadUrl() {
