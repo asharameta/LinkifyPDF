@@ -9,18 +9,24 @@
         <script src="/JS/CustomPrompt/script.js" type="text/javascript"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     </head>
-
-    <body>
         <div id="inline-prompt" style="display:none; position:absolute; z-index:10000;">
             <input type="text" id="inline-prompt-input" placeholder="Enter URL" />
             <button id="inline-prompt-ok">✔</button>
             <button id="inline-prompt-cancel">✖</button>
           </div>
+          <header class="header">
+            <nav class="nav-list">
+                <ul class="ul-list">
+                    <li><a href="/Pages/HomePage/index.html">Linkify PDF</a></li>
+                    <li><a href="/Pages/LibraryPage/index.html">My Library</a></li>
+                    <li><a href="/Pages/OptimizerPage/index.html">PDF Optimizer</a></li>
+                </ul>
+            </nav>
+        </header>
+    <body>
 
-        <a href="/Pages/LibraryPage/index.html">GO TO MY LIBRARY PAGE</a>
-
-        <h1>LINKIFY PDF</h1>
         <input type="button" class="sendData" id="send-data-btn" value="SEND" />
+            <h1>My PDF Linkifier</h1>
 
         <div class="container">
             <div class="pdf-wrapper">

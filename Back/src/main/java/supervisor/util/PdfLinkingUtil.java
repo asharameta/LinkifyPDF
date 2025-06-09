@@ -39,7 +39,7 @@ public class PdfLinkingUtil {
                 }
             });
 
-            Path tempFile = Files.createTempFile("linked-", ".pdf");
+            Path tempFile = Files.createTempFile(pdfFile.getParent(), "linked-", ".pdf");
             document.save(tempFile.toFile());
             return tempFile;
         }
