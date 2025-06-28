@@ -1,48 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 
-    <head>
-        <meta charset="UTF-8">
-        <title>Title</title>
-        <link rel="stylesheet" href="/CSS/HomePage/style.css">
-        <script src="/JS/HomePage/script.js" type="text/javascript"></script>
-        <script src="/JS/CustomPrompt/script.js" type="text/javascript"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    </head>
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="/CSS/HomePage/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+
+    <script src="/JS/HomePage/script.js" type="text/javascript"></script>
+    <script src="/JS/CustomPrompt/script.js" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+</head>
         <div id="inline-prompt" style="display:none; position:absolute; z-index:10000;">
             <input type="text" id="inline-prompt-input" placeholder="Enter URL" />
             <button id="inline-prompt-ok">✔</button>
             <button id="inline-prompt-cancel">✖</button>
           </div>
           <header class="header">
-            <nav class="nav-list">
-                <ul class="ul-list">
-                    <li><a href="/Pages/HomePage/index.html">Linkify PDF</a></li>
-                    <li><a href="/Pages/LibraryPage/index.html">My Library</a></li>
-                    <li><a href="/Pages/OptimizerPage/index.html">PDF Optimizer</a></li>
-                </ul>
-            </nav>
-        </header>
-    <body>
+  <div class="header-container">
+    <h1 class="logo">My PDF Linkifier</h1>
+    <nav class="nav">
+      <ul class="nav-list">
+        <li><a class="glass-link" href="/Pages/HomePage/index.html">Linkify PDF</a></li>
+        <li><a class="glass-link" href="/Pages/LibraryPage/index.html">My Library</a></li>
+        <li><a class="glass-link" href="/Pages/OptimizerPage/index.html">PDF Optimizer</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
 
-        <input type="button" class="sendData" id="send-data-btn" value="SEND" />
-            <h1>My PDF Linkifier</h1>
 
-        <div class="container">
+<div class="liquid-bg"></div>
+            
+<div class="main-content">
+    <div class="container">
+        <div class="main-board">
             <div class="pdf-wrapper">
                 <canvas id="pdfCanvas"></canvas>
                 <div id="overlay"></div>
             </div>
             <div class="upload-container" id="drop-zone">
-                <input type="file" id="upload-pdf-file" accept="application/pdf" hidden>
-                <label for="upload-pdf-file" class="upload-label">
-                  <div class="upload-icon">📄</div>
-                  <div class="upload-text">
-                    <strong>Click to upload</strong> or drag and drop a PDF file here
-                  </div>
-                </label>
-              </div>
-        </div>
+            <input type="file" id="upload-pdf-file" accept="application/pdf" hidden>
+            <label for="upload-pdf-file" class="upload-label">
+                <i class="fa-solid fa-file upload-icon"></i>
 
-    </body>
+                <div class="upload-text">
+                <strong>Click to upload</strong><br>
+                or drag & drop a PDF here
+                </div>
+            </label>
+            </div>
+
+            <input type="button" class="sendData" id="send-data-btn" value="SEND" />
+
+        </div>
+    </div>
+</div>
+
 </html>
