@@ -1,20 +1,25 @@
 package supervisor.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import supervisor.DTO.PdfDTO;
+import supervisor.DTO.PdfResponseDTO;
+import supervisor.DTO.PdfUploadDTO;
 import supervisor.model.SelectionEntity;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import org.springframework.http.*;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import supervisor.service.LinkifyPDFService;
 
-@CrossOrigin(origins = "http://127.0.0.1:5500")
-@Controller
+
+@RestController
 public class LinkifyPDFController {
     private final LinkifyPDFService linkifyPDFService;
 
@@ -24,34 +29,54 @@ public class LinkifyPDFController {
 
     @PostMapping(value = "/pdfs", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseBody
-    public ResponseEntity<PdfDTO> addPDFData(
+    public ResponseEntity<?> addPDFData(
             @RequestPart("file") MultipartFile file,
-            @RequestPart("json") List<SelectionEntity> selectionEntityList,
-            @RequestPart("canvasHeight") String canvasHeight
+            @RequestPart("selectionEntities") String selectionEntitiesJson,
+            @RequestPart("canvasHeightInPixels") String canvasHeightStr
     ) throws IOException {
-        linkifyPDFService.saveUploadedPdf(file);
+        List<SelectionEntity> selectionEntities;
+        double canvasHeightInPixels;
 
-        PdfDTO pdfDTO = new PdfDTO(file.getOriginalFilename(),selectionEntityList, Float.parseFloat(canvasHeight));
-        linkifyPDFService.addPdfData(pdfDTO);
-        return new ResponseEntity<>(pdfDTO, HttpStatus.CREATED);
+        try {
+            selectionEntities = new ObjectMapper().readValue(
+                    selectionEntitiesJson,
+                    new TypeReference<List<SelectionEntity>>() {}
+            );
+            canvasHeightInPixels = Double.parseDouble(canvasHeightStr);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Invalid input data: " + e.getMessage());
+        }
+
+        PdfUploadDTO dto = new PdfUploadDTO(file, selectionEntities, canvasHeightInPixels);
+
+        linkifyPDFService.addPdfData(dto);
+        return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
     @GetMapping("/pdfs/{id}")
-    public ResponseEntity<PdfDTO> getPDFData(@PathVariable("id") long id) throws IOException {
+    public ResponseEntity<PdfResponseDTO> getPDFData(@PathVariable("id") long id) throws IOException {
         var pdfData = linkifyPDFService.getPdfDTO(id);
-
 
         return new ResponseEntity<>(pdfData, HttpStatus.OK);
     }
 
+    @GetMapping("/pdfs/{id}/file")
+    public ResponseEntity<InputStreamResource> getPdfFile(@PathVariable("id") long id) throws IOException {
+        var pdf = linkifyPDFService.getPdfData(id);
+        Path filePath = Path.of(linkifyPDFService.getPDFPath(), pdf.getFilename());
+
+        var inputStream = new InputStreamResource(Files.newInputStream(filePath));
+
+        return new ResponseEntity<>(inputStream, HttpStatus.OK);
+    }
+
     @GetMapping("/pdfs")
-    public ResponseEntity<List<PdfDTO>> getAllPDFData() {
-        List<PdfDTO> pdfData = linkifyPDFService.getAllPdfDTO();
+    public ResponseEntity<List<PdfResponseDTO>> getAllPDFData() {
+        List<PdfResponseDTO> pdfData = linkifyPDFService.getAllPdfDTO();
 
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(pdfData);
-        //return new ResponseEntity<>(pdfData, HttpStatus.OK);
     }
 
     @DeleteMapping("/pdfs/{id}")

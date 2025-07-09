@@ -293,16 +293,13 @@ async function sendDataToBackend() {
     const { canvas } = getCanvasElements();
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("json", new Blob(
-        [JSON.stringify(selectedAreas)],
-        { type: "application/json" }
-    ));
-    formData.append("canvasHeight", JSON.stringify(canvas.offsetHeight));
+    formData.append("selectionEntities", JSON.stringify(selectedAreas));
+    formData.append("canvasHeightInPixels", JSON.stringify(canvas.offsetHeight));
 
     console.info("Sending data to backend:", {
         file: formData.get("file"),
-        json: formData.get("json"),
-        offsetHeight: formData.get("canvasHeight")
+        json: formData.get("selectionEntities"),
+        offsetHeight: formData.get("canvasHeightInPixels")
     });
 
     try {

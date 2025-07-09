@@ -5,7 +5,8 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import supervisor.DTO.PdfDTO;
+import supervisor.DTO.PdfResponseDTO;
+import supervisor.DTO.PdfUploadDTO;
 import supervisor.exception.PdfEntityNoContentException;
 import supervisor.exception.PdfEntityNotFoundException;
 import supervisor.mapper.PDFDataMapper;
@@ -16,6 +17,7 @@ import supervisor.model.SelectionEntityDAO;
 import supervisor.util.PdfLinkingUtil;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -26,7 +28,7 @@ import java.util.Objects;
 
 @Service
 public class LinkifyPDFService {
-    @Value("${pdf.storage.path}")
+    @Value("${spring.servlet.multipart.location}")
     private String pdfStoragePath;
     private final PdfEntityDAO pdfDAO;
     private final SelectionEntityDAO selectionEntityDAO;
@@ -37,13 +39,14 @@ public class LinkifyPDFService {
     }
 
     public List<PDFEntity> getAllPdfData(){
-        return pdfDAO.getAllPDFData();
+        return pdfDAO.getAllPdfWithSelections();
     }
+
     public PDFEntity getPdfData(Long id){
         return pdfDAO.getPDFData(id);
     }
 
-    private String getPDFPath() {
+    public String getPDFPath() {
         return pdfStoragePath;
     }
 
@@ -73,41 +76,30 @@ public class LinkifyPDFService {
     }
 
 
-    public List<PdfDTO> getAllPdfDTO(){
-        List<InputStreamResource> pdfInputStreams = pdfDAO.getAllPDFData().stream().map(pdfEntity -> {
-            try {
-                //return readPDF(pdfEntity.getFilename());
-                return new InputStreamResource(Files.newInputStream(Path.of(pdfStoragePath)));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+    public List<PdfResponseDTO> getAllPdfDTO(){
+        //var selections = selectionEntityDAO.getAllSelectionData();
+        var pdfs = pdfDAO.getAllPdfWithSelections();
 
-        }).toList();
-
-        if(pdfInputStreams.isEmpty()){
-            throw new PdfEntityNoContentException();
-        }
-
-        var selections = selectionEntityDAO.getAllSelectionData();
-
-        return PDFDataMapper.convertToDTOList(pdfInputStreams, selections);
+        return PDFDataMapper.convertToDTOList(getPDFPath(), pdfs);
     }
 
-    public PdfDTO getPdfDTO(Long id) throws IOException {
+    public PdfResponseDTO getPdfDTO(Long id) throws IOException {
         PDFEntity PDFEntity = getPdfData(id);
 
         if(PDFEntity==null){
             throw new PdfEntityNotFoundException(id);
         }
         var selectionEntity = selectionEntityDAO.getSelectionData(id);
+        var pdfEntity = pdfDAO.getPDFData(id);
+        pdfEntity.setSelectionEntities(selectionEntity);
 
-        var inputStreamResource = readPDF(PDFEntity.getFilename());
-
-        return PDFDataMapper.convertToDTO(inputStreamResource, selectionEntity);
+        return PDFDataMapper.convertToDTO(getPDFPath(), pdfEntity);
     }
 
     @Transactional
-    public void addPdfData(PdfDTO data) throws IOException {
+    public void addPdfData(PdfUploadDTO data) throws IOException {
+        saveUploadedPdf(data.getFile());
+
         PDFEntity pdfEntity = PDFDataMapper.convertToEntity(data, LocalDateTime.now());
         List<SelectionEntity> selectionEntities = data.getSelectionEntities();
 

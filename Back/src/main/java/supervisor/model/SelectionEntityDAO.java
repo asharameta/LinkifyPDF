@@ -3,6 +3,7 @@ package supervisor.model;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Repository
 public class SelectionEntityDAO {
 
     private final JdbcTemplate jdbcTemplate;
@@ -35,44 +37,19 @@ public class SelectionEntityDAO {
         return c;
     };
 
-    public List<List<SelectionEntity>> getAllSelectionData() {
-        String sql = "SELECT s.*, p.* " +
-                "FROM selections s " +
-                "JOIN pdfs p ON s.pdf_id = p.id";
+    public List<SelectionEntity> getAllSelectionData() {
+        String sql = "SELECT * FROM selections";
 
-        List<SelectionEntity> selectionEntityList = jdbcTemplate.query(sql, (rs, rowNum) -> {
-            //printResultSet(rs);
-            try {
-            // Map PDFEntity from the result set
-            PDFEntity pdf = new PDFEntity();
-            pdf.setId(rs.getLong("pdf_id"));
-            pdf.setFilename(rs.getString("filename"));
-            pdf.setUploadedAt(rs.getTimestamp("uploaded_at").toLocalDateTime());
-
-
-            // Map SelectionEntity from the result set
-            SelectionEntity selection = new SelectionEntity();
-            selection.setId(rs.getLong("id"));
-            selection.setPdf(pdf);
-            selection.setUrl(rs.getString("url"));
-            selection.setX(rs.getDouble("x"));
-            selection.setY(rs.getDouble("y"));
-            selection.setWidth(rs.getDouble("width"));
-            selection.setHeight(rs.getDouble("height"));
-
-
-            return selection;
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            SelectionEntity dto = new SelectionEntity();
+            dto.setId(rs.getLong("id"));
+            dto.setUrl(rs.getString("url"));
+            dto.setX(rs.getDouble("x"));
+            dto.setY(rs.getDouble("y"));
+            dto.setWidth(rs.getDouble("width"));
+            dto.setHeight(rs.getDouble("height"));
+            return dto;
         });
-
-        // Group by PDFEntity
-        Map<PDFEntity, List<SelectionEntity>> groupedByPdf = selectionEntityList.stream()
-                .collect(Collectors.groupingBy(SelectionEntity::getPdf));
-
-        return new ArrayList<>(groupedByPdf.values());
     }
 
     public List<SelectionEntity> getSelectionData(Long id){

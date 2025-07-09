@@ -1,10 +1,12 @@
 package supervisor.service;
 
+import org.springframework.stereotype.Service;
 import supervisor.model.SelectionEntity;
 import supervisor.model.SelectionEntityDAO;
 
 import java.util.List;
 
+@Service
 public class SelectionService {
     private final SelectionEntityDAO selectionEntityDAO;
 
@@ -12,7 +14,7 @@ public class SelectionService {
         this.selectionEntityDAO = selectionEntityDAO;
     }
 
-    public List<List<SelectionEntity>> getAllSelectionData(){
+    public List<SelectionEntity> getAllSelectionData(){
         return selectionEntityDAO.getAllSelectionData();
     }
 

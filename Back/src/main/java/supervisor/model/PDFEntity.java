@@ -18,21 +18,21 @@ public class PDFEntity {
     @Column(name = "uploaded_at", nullable = false)
     private LocalDateTime uploadedAt = LocalDateTime.now();
 
-//    @OneToMany(mappedBy = "pdf", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<SelectionEntity> selectionEntities;
+    @OneToMany(mappedBy = "pdf", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SelectionEntity> selectionEntities;
 
 
     public PDFEntity() {
 
     }
 
-//    public List<SelectionEntity> getSelections() {
-//        return selectionEntities;
-//    }
-//
-//    public void setSelections(List<SelectionEntity> selectionEntities) {
-//        this.selectionEntities = selectionEntities;
-//    }
+    public List<SelectionEntity> getSelectionEntities() {
+        return selectionEntities;
+    }
+
+    public void setSelectionEntities(List<SelectionEntity> selectionEntities) {
+        this.selectionEntities = selectionEntities;
+    }
 
     public LocalDateTime getUploadedAt() {
         return uploadedAt;

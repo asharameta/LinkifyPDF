@@ -9,9 +9,9 @@ public class SelectionEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "pdf_id", nullable = false)
-    private PDFEntity pdf;
+//    @ManyToOne
+//    @JoinColumn(name = "pdf_id", nullable = false)
+//    private PDFEntity pdf;
 
     @Column(nullable = false)
     private String url;
@@ -38,13 +38,13 @@ public class SelectionEntity {
         this.height = height;
     }
 
-    public void setPdf(PDFEntity pdf) {
-        this.pdf = pdf;
-    }
-
-    public PDFEntity getPdf() {
-        return pdf;
-    }
+//    public void setPdf(PDFEntity pdf) {
+//        this.pdf = pdf;
+//    }
+//
+//    public PDFEntity getPdf() {
+//        return pdf;
+//    }
 
     public void setId(Long id) {
         this.id = id;
@@ -98,7 +98,7 @@ public class SelectionEntity {
     public String toString() {
         return "Selection{" + "\n"+
                 "id=" + id + "\n"+
-                "pdf=" + pdf + "\n"+
+//                "pdf=" + pdf + "\n"+
                 "url=" + url + "\n"+
                 "x=" + x + "\n"+
                 "y=" + y + "\n"+
