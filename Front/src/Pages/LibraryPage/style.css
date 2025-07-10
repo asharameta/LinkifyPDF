@@ -10,28 +10,15 @@ body {
     margin: 0;
 }
 
-.header{
-    display: flex;
-    width: 100%;
-    height: 70px;
-    justify-content: flex-start;
-    align-items: center;
-    background-color: #6c63ff;
-}
-
-.nav-list{
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-}
-
-.ul-list{
-    display: flex;
-    list-style: none;
-    padding: 0;
-    margin: 0 20px;
-    flex-direction: row;
-    gap: 20px;
+.react-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 90%;
+  height: 6vh;
+    border-radius: 20px;
+  margin-top: 30px;
+  background-color: rgba(108, 99, 255, 0.5);
 }
 
 /* PDF Wrapper (Canvas + Overlay) */

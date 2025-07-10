@@ -1,0 +1,29 @@
+#inline-prompt {
+    background: white;
+    border: 1px solid #ccc;
+    padding: 4px 6px;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+  
+  #inline-prompt input {
+    width: 300px;
+    padding: 4px;
+    font-size: 14px;
+  }
+  
+  #inline-prompt button {
+    border: none;
+    background: #eee;
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 14px;
+    border-radius: 4px;
+  }
+  
+  #inline-prompt button:hover {
+    background: #ddd;
+  }
