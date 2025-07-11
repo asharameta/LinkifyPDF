@@ -1,4 +1,4 @@
-import "./style.css";
+import style from "./style.module.css";
 import "./script.js";
 
 const OptimizerPage = () => {

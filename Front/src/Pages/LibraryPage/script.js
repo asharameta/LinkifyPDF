@@ -12,14 +12,14 @@ window.onload = async () => {
 
 function createEventHandlers() {
 
-    const downloadDataButton = document.querySelector('.downloadData');
-    if (downloadDataButton) {
-        downloadDataButton.addEventListener('click', async (e) => {
+    // const downloadDataButton = document.querySelector('.downloadData');
+    // if (downloadDataButton) {
+    //     downloadDataButton.addEventListener('click', async (e) => {
             
-        });
-    } else {
-        console.error("Button with class '.downloadData' not found.");
-    }
+    //     });
+    // } else {
+    //     console.error("Button with class '.downloadData' not found.");
+    // }
 }
 
 async function getPDFData() {
