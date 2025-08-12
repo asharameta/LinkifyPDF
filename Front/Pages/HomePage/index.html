@@ -41,17 +41,15 @@
                 <canvas id="pdfCanvas"></canvas>
                 <div id="overlay"></div>
             </div>
-            <div class="upload-container" id="drop-zone">
-            <input type="file" id="upload-pdf-file" accept="application/pdf" hidden>
-            <label for="upload-pdf-file" class="upload-label">
-                <i class="fa-solid fa-file upload-icon"></i>
+            <label class="upload-container" id="drop-zone" for="upload-pdf-file">
+              <input type="file" id="upload-pdf-file" accept="application/pdf" hidden>
 
-                <div class="upload-text">
+              <i class="fa-solid fa-file upload-icon"></i>
+              <div class="upload-text">
                 <strong>Click to upload</strong><br>
                 or drag & drop a PDF here
-                </div>
+              </div>
             </label>
-            </div>
 
             <input type="button" class="sendData" id="send-data-btn" value="SEND" />
 

@@ -196,7 +196,7 @@ body::before {
   opacity: 1; /* make it solid */
 }
 
-.upload-text strong {
+.upload-text, .upload-text strong {
   color: #000;
 }
   
@@ -285,6 +285,7 @@ body::before {
 #send-data-btn {
   display: none;
   width: 160px;
+  height: 30px;
   background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
@@ -293,11 +294,9 @@ body::before {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   color: #ffffff;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-top: 20px;
+  margin-top: 30px;
 }
 
 #send-data-btn:hover {
