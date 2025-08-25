@@ -24,7 +24,7 @@ function createEventHandlers() {
 
 async function getPDFData() {
     try {
-        const response = fetch('http://localhost:8080/pdfs')
+        const response = fetch('http://localhost:8080/documents')
             .then(res => res.json())
             .then(data => {
                 const finalArray = data.map(element => {

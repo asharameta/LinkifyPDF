@@ -292,18 +292,24 @@ async function sendDataToBackend() {
     }
     const { canvas } = getCanvasElements();
     const formData = new FormData();
+
     formData.append("file", file);
-    formData.append("selectionEntities", JSON.stringify(selectedAreas));
-    formData.append("canvasHeightInPixels", JSON.stringify(canvas.offsetHeight));
+    formData.append("json", new Blob(
+        [JSON.stringify(selectedAreas)],
+        { type: "application/json" }
+    ));
+    formData.append("canvasHeight", JSON.stringify(canvas.offsetHeight));
+
+
 
     console.info("Sending data to backend:", {
         file: formData.get("file"),
-        json: formData.get("selectionEntities"),
-        offsetHeight: formData.get("canvasHeightInPixels")
+        json: formData.get("json"),
+        offsetHeight: formData.get("canvasHeight")
     });
 
     try {
-        await fetch('http://localhost:8080/pdfs', {
+        await fetch('http://localhost:8080/documents', {
             method: "POST",
             body: formData,
         })

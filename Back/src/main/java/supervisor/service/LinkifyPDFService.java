@@ -7,17 +7,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import supervisor.DTO.PdfResponseDTO;
 import supervisor.DTO.PdfUploadDTO;
-import supervisor.exception.PdfEntityNoContentException;
 import supervisor.exception.PdfEntityNotFoundException;
 import supervisor.mapper.PDFDataMapper;
-import supervisor.model.PDFEntity;
-import supervisor.model.PdfEntityDAO;
+import supervisor.model.DocumentEntity;
+import supervisor.model.DocumentEntityDAO;
 import supervisor.model.SelectionEntity;
 import supervisor.model.SelectionEntityDAO;
 import supervisor.util.PdfLinkingUtil;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -30,19 +28,19 @@ import java.util.Objects;
 public class LinkifyPDFService {
     @Value("${spring.servlet.multipart.location}")
     private String pdfStoragePath;
-    private final PdfEntityDAO pdfDAO;
+    private final DocumentEntityDAO pdfDAO;
     private final SelectionEntityDAO selectionEntityDAO;
 
-    public LinkifyPDFService(PdfEntityDAO pdfDAO, SelectionEntityDAO selectionEntityDAO) {
+    public LinkifyPDFService(DocumentEntityDAO pdfDAO, SelectionEntityDAO selectionEntityDAO) {
         this.selectionEntityDAO = selectionEntityDAO;
         this.pdfDAO = pdfDAO;
     }
 
-    public List<PDFEntity> getAllPdfData(){
-        return pdfDAO.getAllPdfWithSelections();
+    public List<DocumentEntity> getAllPdfData(){
+        return pdfDAO.getAllDocuments();
     }
 
-    public PDFEntity getPdfData(Long id){
+    public DocumentEntity getPdfData(Long id){
         return pdfDAO.getPDFData(id);
     }
 
@@ -78,15 +76,15 @@ public class LinkifyPDFService {
 
     public List<PdfResponseDTO> getAllPdfDTO(){
         //var selections = selectionEntityDAO.getAllSelectionData();
-        var pdfs = pdfDAO.getAllPdfWithSelections();
+        var pdfs = pdfDAO.getAllDocuments();
 
         return PDFDataMapper.convertToDTOList(getPDFPath(), pdfs);
     }
 
     public PdfResponseDTO getPdfDTO(Long id) throws IOException {
-        PDFEntity PDFEntity = getPdfData(id);
+        DocumentEntity DocumentEntity = getPdfData(id);
 
-        if(PDFEntity==null){
+        if(DocumentEntity ==null){
             throw new PdfEntityNotFoundException(id);
         }
         var selectionEntity = selectionEntityDAO.getSelectionData(id);
@@ -100,15 +98,15 @@ public class LinkifyPDFService {
     public void addPdfData(PdfUploadDTO data) throws IOException {
         saveUploadedPdf(data.getFile());
 
-        PDFEntity pdfEntity = PDFDataMapper.convertToEntity(data, LocalDateTime.now());
+        DocumentEntity documentEntity = PDFDataMapper.convertToEntity(data, LocalDateTime.now());
         List<SelectionEntity> selectionEntities = data.getSelectionEntities();
 
-        Path filePath = Paths.get(getPDFPath(), pdfEntity.getFilename());
+        Path filePath = Paths.get(getPDFPath(), documentEntity.getFilename());
         Path modifiedPdfPath = PdfLinkingUtil.generateLinkedPdf(filePath, selectionEntities, data.getCanvasHeightInPixels());
         System.out.println(modifiedPdfPath);
         Files.copy(Files.newInputStream(modifiedPdfPath), modifiedPdfPath, StandardCopyOption.REPLACE_EXISTING);
 
-        Long pdfId = pdfDAO.addPDFData(pdfEntity);
+        Long pdfId = pdfDAO.addDocument(documentEntity);
         selectionEntityDAO.addSelectionData(selectionEntities, pdfId);
     }
 

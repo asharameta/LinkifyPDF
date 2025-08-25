@@ -1,22 +1,19 @@
 package supervisor.DTO;
 
-import supervisor.model.PDFEntity;
-import supervisor.model.SelectionEntity;
-
-import java.util.List;
+import supervisor.model.DocumentEntity;
 
 public class PdfResponseDTO {
     private String pathToFile;
-    private PDFEntity pdfEntity;
+    private DocumentEntity documentEntity;
     //private List<SelectionEntity> selectionEntities;
 
-    public PdfResponseDTO(String pathToFile, PDFEntity pdfEntity) {
+    public PdfResponseDTO(String pathToFile, DocumentEntity documentEntity) {
         this.pathToFile = pathToFile;
-        this.pdfEntity = pdfEntity;
+        this.documentEntity = documentEntity;
     }
 
-    public PDFEntity getPdfEntity() {
-        return pdfEntity;
+    public DocumentEntity getPdfEntity() {
+        return documentEntity;
     }
 
     public String getPathToFile() {
@@ -27,8 +24,8 @@ public class PdfResponseDTO {
         this.pathToFile = pathToFile;
     }
 
-    public void setPdfEntity(PDFEntity pdfEntity) {
-        this.pdfEntity = pdfEntity;
+    public void setPdfEntity(DocumentEntity documentEntity) {
+        this.documentEntity = documentEntity;
     }
 
 //    public List<SelectionEntity> getSelectionEntities() {

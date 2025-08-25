@@ -9,6 +9,7 @@ import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
 import supervisor.model.SelectionEntity;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -28,7 +29,7 @@ public class PdfLinkingUtil {
 
                 // Set the hyperlink action
                 PDActionURI action = new PDActionURI();
-                action.setURI(area.getUrl());
+                action.setURI(area.getLinkValue());
                 link.setAction(action);
 
                 // Add the annotation to the page
@@ -53,10 +54,10 @@ public class PdfLinkingUtil {
         float scale = (float) (pdfPageHeight / canvasHeightInPixels);
 
         // Transform canvas coordinates to PDF coordinates
-        float pdfLowerLeftX = (float) (area.getX() * scale);
-        float pdfLowerLeftY = (float) (pdfPageHeight - (area.getY() + area.getHeight()) * scale);
-        float pdfUpperRightX = (float) ((area.getX() + area.getWidth()) * scale);
-        float pdfUpperRightY = (float) (pdfPageHeight - area.getY() * scale);
+        float pdfLowerLeftX = (float) (area.getxNorm() * scale);
+        float pdfLowerLeftY = (float) (pdfPageHeight - (area.getyNorm() + area.gethNorm()) * scale);
+        float pdfUpperRightX = (float) ((area.getxNorm() + area.getwNorm()) * scale);
+        float pdfUpperRightY = (float) (pdfPageHeight - area.getyNorm() * scale);
 
         // Create PDRectangle for the hyperlink
         return new PDRectangle(pdfLowerLeftX, pdfLowerLeftY,

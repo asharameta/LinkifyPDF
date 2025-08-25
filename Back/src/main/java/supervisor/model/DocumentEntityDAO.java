@@ -15,38 +15,44 @@ import java.util.List;
 import java.util.Map;
 
 @Repository
-public class PdfEntityDAO {
+public class DocumentEntityDAO {
     private final JdbcTemplate jdbcTemplate;
 
     @Autowired
-    public PdfEntityDAO(JdbcTemplate jdbcTemplate) {
+    public DocumentEntityDAO(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    private final RowMapper<PDFEntity> RowMapper = (rs, rowNum) -> {
-        PDFEntity c = new PDFEntity();
-        c.setId(rs.getLong("id"));
-        c.setFilename(rs.getString("filename"));
-        c.setUploadedAt(rs.getTimestamp("uploaded_at").toLocalDateTime());
-        return c;
+    private final RowMapper<DocumentEntity> RowMapper = (rs, rowNum) -> {
+        DocumentEntity doc = new DocumentEntity();
+        doc.setId(rs.getLong("id"));
+        doc.setFilename(rs.getString("filename"));
+        doc.setStoragePath(rs.getString("storage_path"));
+        doc.setMimeType(rs.getString("mime_type"));
+        doc.setPageCount(rs.getInt("page_count"));
+        doc.setUploadedAt(rs.getTimestamp("uploaded_at").toLocalDateTime());
+        return doc;
     };
 
-    public List<PDFEntity> getAllPdfWithSelections() {
-        String sql = "SELECT s.*, p.id as pdf_id, p.filename, p.uploaded_at " +
+    public List<DocumentEntity> getAllDocuments() {
+        String sql = "SELECT s.*, d.*" +
                 "FROM selections s " +
-                "JOIN pdfs p ON s.pdf_id = p.id";
+                "JOIN documents d ON s.id = d.id";
 
-        Map<Long, PDFEntity> pdfMap = new LinkedHashMap<>();
+        Map<Long, DocumentEntity> pdfMap = new LinkedHashMap<>();
 
         jdbcTemplate.query(sql, rs -> {
-            Long pdfId = rs.getLong("pdf_id");
+            Long pdfId = rs.getLong("d.id");
 
             // Create PDFDto if not already in map
-            PDFEntity pdfDto = pdfMap.computeIfAbsent(pdfId, id -> {
-                PDFEntity dto = new PDFEntity();
+            DocumentEntity pdfDto = pdfMap.computeIfAbsent(pdfId, id -> {
+                DocumentEntity dto = new DocumentEntity();
                 dto.setId(pdfId);
                 try {
                     dto.setFilename(rs.getString("filename"));
+                    dto.setStoragePath(rs.getString("storage_path"));
+                    dto.setMimeType(rs.getString("mime_type"));
+                    dto.setPageCount(rs.getInt("page_count"));
                     dto.setUploadedAt(rs.getTimestamp("uploaded_at").toLocalDateTime());
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
@@ -58,11 +64,13 @@ public class PdfEntityDAO {
             // Create and add SelectionDto
             SelectionEntity selection = new SelectionEntity();
             selection.setId(rs.getLong("id"));
-            selection.setUrl(rs.getString("url"));
-            selection.setX(rs.getDouble("x"));
-            selection.setY(rs.getDouble("y"));
-            selection.setWidth(rs.getDouble("width"));
-            selection.setHeight(rs.getDouble("height"));
+            selection.setPageNumber(rs.getInt("page_number"));
+            selection.setxNorm(rs.getDouble("x_norm"));
+            selection.setyNorm(rs.getDouble("y_norm"));
+            selection.setwNorm(rs.getDouble("w_norm"));
+            selection.sethNorm(rs.getDouble("h_norm"));
+            selection.setLinkType(LinkType.valueOf(rs.getString("link_type")));
+            selection.setLinkValue(rs.getString("link_value"));
 
             pdfDto.getSelectionEntities().add(selection);
         });
@@ -71,9 +79,9 @@ public class PdfEntityDAO {
     }
 
 
-    public PDFEntity getPDFData(Long id){
+    public DocumentEntity getPDFData(Long id){
         String sql = "SELECT * " +
-                      "FROM pdfs " +
+                      "FROM documents " +
                       "WHERE id = ?";
 
         try {
@@ -83,13 +91,17 @@ public class PdfEntityDAO {
         }
     }
 
-    public Long addPDFData(PDFEntity data) throws IOException {
-        String sql = "INSERT INTO pdfs (filename, uploaded_at) VALUES (?, ?) RETURNING id";
+    public Long addDocument(DocumentEntity data) throws IOException {
+        String sql = "INSERT INTO documents (filename, storage_path, mime_type, page_count, uploaded_at) VALUES (?, ?, ?, ?, ?) RETURNING id";
 
         return jdbcTemplate.queryForObject(
                 sql,
                 Long.class,
                 data.getFilename(),
+                data.getStoragePath(),
+                data.getMimeType(),
+                data.getPageCount(),
+                data.getSha256Hex(),
                 Timestamp.valueOf(data.getUploadedAt())
         );
     }

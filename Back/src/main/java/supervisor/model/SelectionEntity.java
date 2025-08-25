@@ -2,6 +2,8 @@ package supervisor.model;
 
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "selections")
 public class SelectionEntity {
@@ -9,101 +11,103 @@ public class SelectionEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    @ManyToOne
-//    @JoinColumn(name = "pdf_id", nullable = false)
-//    private PDFEntity pdf;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "document_id", nullable = false)
+    private DocumentEntity document;
 
-    @Column(nullable = false)
-    private String url;
+    @Column(name = "page_number", nullable = false)
+    private int pageNumber;
 
-    @Column(nullable = false)
-    private double x;
+    // Normalized coordinates [0..1]
+    @Column(name = "x_norm", nullable = false, precision = 6, scale = 5)
+    private double  xNorm;
 
-    @Column(nullable = false)
-    private double y;
+    @Column(name = "y_norm", nullable = false, precision = 6, scale = 5)
+    private double  yNorm;
 
-    @Column(nullable = false)
-    private double width;
+    @Column(name = "w_norm", nullable = false, precision = 6, scale = 5)
+    private double  wNorm;
 
-    @Column(nullable = false)
-    private double height;
+    @Column(name = "h_norm", nullable = false, precision = 6, scale = 5)
+    private double  hNorm;
+
+    @Column(name = "link_type", nullable = false)
+    private LinkType linkType = LinkType.URL;
+
+    @Column(name = "link_value", nullable = false)
+    private String linkValue;
 
     public SelectionEntity(){}
 
-    public SelectionEntity(String url, double x, double y, double width, double height){
-        this.url = url;
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
+    public DocumentEntity getDocumentId() {
+        return document;
     }
 
-//    public void setPdf(PDFEntity pdf) {
-//        this.pdf = pdf;
-//    }
-//
-//    public PDFEntity getPdf() {
-//        return pdf;
-//    }
+    public void setDocumentId(long documentId) {
+        this.document.setId(documentId);
+    }
 
-    public void setId(Long id) {
-        this.id = id;
+    public int getPageNumber() {
+        return pageNumber;
+    }
+
+    public void setPageNumber(int pageNumber) {
+        this.pageNumber = pageNumber;
+    }
+
+    public double  getxNorm() {
+        return xNorm;
+    }
+
+    public void setxNorm(double  xNorm) {
+        this.xNorm = xNorm;
+    }
+
+    public double getyNorm() {
+        return yNorm;
+    }
+
+    public void setyNorm(double yNorm) {
+        this.yNorm = yNorm;
+    }
+
+    public double getwNorm() {
+        return wNorm;
     }
 
     public Long getId() {
         return id;
     }
 
-    public String getUrl() {
-        return url;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setwNorm(double wNorm) {
+        this.wNorm = wNorm;
     }
 
-    public double getX() {
-        return x;
+    public double gethNorm() {
+        return hNorm;
     }
 
-    public void setX(double x) {
-        this.x = x;
+    public void sethNorm(double hNorm) {
+        this.hNorm = hNorm;
     }
 
-    public double getY() {
-        return y;
+    public LinkType getLinkType() {
+        return linkType;
     }
 
-    public void setY(double y) {
-        this.y = y;
+    public void setLinkType(LinkType linkType) {
+        this.linkType = linkType;
     }
 
-    public double getWidth() {
-        return width;
+    public String getLinkValue() {
+        return linkValue;
     }
 
-    public void setWidth(double width) {
-        this.width = width;
-    }
-
-    public double getHeight() {
-        return height;
-    }
-
-    public void setHeight(double height) {
-        this.height = height;
-    }
-
-    @Override
-    public String toString() {
-        return "Selection{" + "\n"+
-                "id=" + id + "\n"+
-//                "pdf=" + pdf + "\n"+
-                "url=" + url + "\n"+
-                "x=" + x + "\n"+
-                "y=" + y + "\n"+
-                "width=" + width + "\n"+
-                "height=" + height + "\n"+
-                '}';
+    public void setLinkValue(String linkValue) {
+        this.linkValue = linkValue;
     }
 }

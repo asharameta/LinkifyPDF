@@ -27,40 +27,28 @@ public class LinkifyPDFController {
         this.linkifyPDFService = linkifyPDFService;
     }
 
-    @PostMapping(value = "/pdfs", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/documents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseBody
     public ResponseEntity<?> addPDFData(
             @RequestPart("file") MultipartFile file,
-            @RequestPart("selectionEntities") String selectionEntitiesJson,
-            @RequestPart("canvasHeightInPixels") String canvasHeightStr
+            @RequestPart("json") List<SelectionEntity> selectionEntities,
+            @RequestPart("canvasHeight") String canvasHeight
     ) throws IOException {
-        List<SelectionEntity> selectionEntities;
-        double canvasHeightInPixels;
 
-        try {
-            selectionEntities = new ObjectMapper().readValue(
-                    selectionEntitiesJson,
-                    new TypeReference<List<SelectionEntity>>() {}
-            );
-            canvasHeightInPixels = Double.parseDouble(canvasHeightStr);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Invalid input data: " + e.getMessage());
-        }
-
-        PdfUploadDTO dto = new PdfUploadDTO(file, selectionEntities, canvasHeightInPixels);
+        PdfUploadDTO dto = new PdfUploadDTO(file, selectionEntities, Float.parseFloat(canvasHeight));
 
         linkifyPDFService.addPdfData(dto);
         return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
-    @GetMapping("/pdfs/{id}")
+    @GetMapping("/documents/{id}")
     public ResponseEntity<PdfResponseDTO> getPDFData(@PathVariable("id") long id) throws IOException {
         var pdfData = linkifyPDFService.getPdfDTO(id);
 
         return new ResponseEntity<>(pdfData, HttpStatus.OK);
     }
 
-    @GetMapping("/pdfs/{id}/file")
+    @GetMapping("/documents/{id}/file")
     public ResponseEntity<InputStreamResource> getPdfFile(@PathVariable("id") long id) throws IOException {
         var pdf = linkifyPDFService.getPdfData(id);
         Path filePath = Path.of(linkifyPDFService.getPDFPath(), pdf.getFilename());
@@ -70,7 +58,7 @@ public class LinkifyPDFController {
         return new ResponseEntity<>(inputStream, HttpStatus.OK);
     }
 
-    @GetMapping("/pdfs")
+    @GetMapping("/documents")
     public ResponseEntity<List<PdfResponseDTO>> getAllPDFData() {
         List<PdfResponseDTO> pdfData = linkifyPDFService.getAllPdfDTO();
 
@@ -79,7 +67,7 @@ public class LinkifyPDFController {
                 .body(pdfData);
     }
 
-    @DeleteMapping("/pdfs/{id}")
+    @DeleteMapping("/documents/{id}")
     public ResponseEntity<?> deletePDFData(@PathVariable Long id){
 //       boolean isDeleted = linkifyPDFService.deletePdfData(id);
 //       if(!isDeleted){
