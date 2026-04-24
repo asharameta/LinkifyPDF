@@ -1,12 +1,11 @@
-/* General Styling */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
 body {
     background: linear-gradient(135deg, #e0e0e0, #f5f5f5);
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    height: 100vh;
-    margin: 0;
+    min-height: 100vh;
     font-family: 'Inter', sans-serif;
 }
 
@@ -98,12 +97,11 @@ body::before {
 
 .glass-link {
   display: flex;
-  flex-direction: row;
   justify-content: center;
   align-items: center;
-  padding: 5px;
+  padding: 5px 12px;
   height: 3.5vh;
-  width: 5vw;
+  min-width: 90px;
   border-radius: 20px;
   color: white;
   text-decoration: none;
@@ -111,12 +109,17 @@ body::before {
   border: 1px solid rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(15px) saturate(180%);
   -webkit-backdrop-filter: blur(15px) saturate(180%);
-  transition: background 0.2s ease, transform 0.3 ease;
+  transition: background 0.2s ease, transform 0.2s ease;
+  font-size: 0.85rem;
 }
 
 .glass-link:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.02);
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.glass-link.active {
+  background: rgba(255, 255, 255, 0.28);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.85);
 }
 
 .main-content{
@@ -282,27 +285,75 @@ body::before {
 }
 
 
-#send-data-btn {
+.action-bar {
   display: none;
-  width: 160px;
-  height: 30px;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  color: #ffffff;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-top: 30px;
+  gap: 12px;
+  margin-top: 20px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
-#send-data-btn:hover {
-  background: rgba(255, 255, 255, 0.25);
-  transform: scale(1.01);
+.action-btn {
+  height: 36px;
+  padding: 0 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.85);
+  color: #3d3a6b;
+  border: 1px solid rgba(108, 99, 255, 0.25);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.btn-secondary:hover {
+  background: #ffffff;
+  border-color: rgba(108, 99, 255, 0.5);
+}
+
+.btn-primary {
+  background: #6c63ff;
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 4px 14px rgba(108, 99, 255, 0.45);
+}
+
+.btn-primary:hover {
+  background: #5a52e0;
+}
+
+.toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: white;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 9999;
+}
+
+.toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.toast.success { background: rgba(34, 197, 94, 0.9); }
+.toast.error   { background: rgba(220, 50, 50, 0.9); }
 
 #inline-prompt {
     background: white;
@@ -333,4 +384,17 @@ body::before {
   #inline-prompt button:hover {
     background: #ddd;
   }
-  
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-top-color: rgba(108, 99, 255, 0.9);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin: 20px auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

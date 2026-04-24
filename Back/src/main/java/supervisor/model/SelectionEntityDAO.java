@@ -5,15 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import java.io.IOException;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Repository
 public class SelectionEntityDAO {
@@ -65,7 +57,7 @@ public class SelectionEntityDAO {
         return jdbcTemplate.query(sql, RowMapper, id);
     }
 
-    public void addSelectionData(List<SelectionEntity> selections, Long documentId) throws IOException {
+    public void addSelectionData(List<SelectionEntity> selections, Long documentId) {
         String sql = "INSERT INTO selections (document_id, page_number, x_norm, y_norm, w_norm, h_norm, link_type, link_value) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         jdbcTemplate.batchUpdate(sql, selections, selections.size(), (ps, selection) -> {
@@ -75,29 +67,11 @@ public class SelectionEntityDAO {
             ps.setDouble(4, selection.getyNorm());
             ps.setDouble(5, selection.getwNorm());
             ps.setDouble(6, selection.gethNorm());
-            ps.setString(6, selection.getLinkType().toString());
-            ps.setString(6, selection.getLinkValue());
+            ps.setString(7, selection.getLinkType().toString());
+            ps.setString(8, selection.getLinkValue());
         });
     }
 
 
-    public void printResultSet(ResultSet rs) throws SQLException {
-        // Get the ResultSetMetaData to retrieve column information
-        ResultSetMetaData metaData = rs.getMetaData();
-        int columnCount = metaData.getColumnCount();
 
-        // Iterate over all rows in the ResultSet
-        while (rs.next()) {
-            // Iterate over all columns in the current row
-            for (int i = 1; i <= columnCount; i++) {
-                // Get column name and value
-                String columnName = metaData.getColumnName(i);
-                Object columnValue = rs.getObject(i);
-
-                // Print column name and its corresponding value
-                System.out.println(columnName + ": " + columnValue);
-            }
-            System.out.println("------------------------");
-        }
-    }
 }

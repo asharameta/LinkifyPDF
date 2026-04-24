@@ -1,5 +1,6 @@
 package supervisor.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -39,11 +40,15 @@ public class SelectionEntity {
 
     public SelectionEntity(){}
 
+    @JsonIgnore
     public DocumentEntity getDocumentId() {
         return document;
     }
 
     public void setDocumentId(long documentId) {
+        if (this.document == null) {
+            this.document = new DocumentEntity();
+        }
         this.document.setId(documentId);
     }
 

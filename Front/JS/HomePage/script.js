@@ -25,13 +25,13 @@ function createContextMenu() {
     deleteOption.classList.add("context-menu-item");
     deleteOption.onclick = () => {
         const { overlay } = getCanvasElements();
-        overlay.removeChild(contextMenu.targetBox);
-        selectedAreas = selectedAreas.filter(
-            area => area !== contextMenu.targetBox
-        );
-        hyperlinks = hyperlinks.filter(
-            h => h !== contextMenu.targetBox
-        );
+        const box = contextMenu.targetBox;
+        overlay.removeChild(box);
+        const idx = parseInt(box.dataset.areaIndex, 10);
+        selectedAreas.splice(idx, 1);
+        hyperlinks = hyperlinks.filter(h => h !== box);
+        // Re-index remaining boxes
+        hyperlinks.forEach((h, i) => { h.dataset.areaIndex = i; });
     };
 
     const cancelOption = document.createElement("div");
@@ -54,14 +54,32 @@ function createContextMenu() {
 function createEventHandlers() {
     const { overlay } = getCanvasElements();
 
-    const sendDataButton = document.querySelector('.sendData');
-    if (sendDataButton) {
-        sendDataButton.addEventListener('click', async () => {
-            await sendDataToBackend();
-        });
-    } else {
-        console.error("Button with class '.sendData' not found.");
-    }
+    document.getElementById('send-data-btn').addEventListener('click', async () => {
+        await sendDataToBackend();
+    });
+
+    document.getElementById('reset-btn').addEventListener('click', () => {
+        const { overlay } = getCanvasElements();
+        overlay.querySelectorAll('.selection-box').forEach(b => b.remove());
+        selectedAreas = [];
+        hyperlinks = [];
+    });
+
+    document.getElementById('new-pdf-btn').addEventListener('click', () => {
+        const { overlay } = getCanvasElements();
+        overlay.querySelectorAll('.selection-box').forEach(b => b.remove());
+        selectedAreas = [];
+        hyperlinks = [];
+        pdfInstance = null;
+        currentPage = 1;
+        document.getElementById('upload-pdf-file').value = '';
+        const pdfWrapper = document.querySelector('.pdf-wrapper');
+        const uploadContainer = document.querySelector('.upload-container');
+        const actionBar = document.getElementById('action-bar');
+        pdfWrapper.style.display = 'none';
+        uploadContainer.style.display = '';
+        actionBar.style.display = 'none';
+    });
 
 
     const dropZone = document.getElementById('drop-zone');
@@ -103,16 +121,19 @@ function createEventHandlers() {
         }
     });
 
-    overlay.addEventListener('mousedown', (event) => {
+    overlay.addEventListener('pointerdown', (event) => {
         if (event.button === 2 || event.target !== overlay) return;
+        overlay.setPointerCapture(event.pointerId);
         isSelecting = true;
         const rect = overlay.getBoundingClientRect();
         startX = event.clientX - rect.left;
         startY = event.clientY - rect.top;
+        endX = startX;
+        endY = startY;
         currentSelectionBox = createSelectionBox();
     });
 
-    overlay.addEventListener('mousemove', (event) => {
+    overlay.addEventListener('pointermove', (event) => {
         if (!isSelecting || !currentSelectionBox) return;
         const rect = overlay.getBoundingClientRect();
         endX = event.clientX - rect.left;
@@ -120,10 +141,17 @@ function createEventHandlers() {
         drawSelectionBox(currentSelectionBox);
     });
 
-    overlay.addEventListener('mouseup', async () => {
+    overlay.addEventListener('pointerup', async (event) => {
         if (!isSelecting || !currentSelectionBox) return;
         isSelecting = false;
-        await addHyperlink(currentSelectionBox);
+        const w = Math.abs(endX - startX);
+        const h = Math.abs(endY - startY);
+        if (w < 8 || h < 8) {
+            currentSelectionBox.remove();
+            currentSelectionBox = null;
+            return;
+        }
+        await addHyperlink(currentSelectionBox, event);
         currentSelectionBox = null;
     });
 
@@ -151,6 +179,8 @@ function createEventHandlers() {
 }
 
 function loadPDF(pdfData) {
+    const spinner = document.getElementById('pdf-spinner');
+    spinner.style.display = 'block';
     pdfjsLib.getDocument({ data: pdfData }).promise
         .then((pdf) => {
             pdfInstance = pdf;
@@ -159,16 +189,24 @@ function loadPDF(pdfData) {
         })
         .catch((error) => {
             console.error("Error loading PDF:", error);
+            spinner.style.display = 'none';
         });
 }
 
 function updateVisibility() {
-    const pdfWrapper = document.querySelector(".pdf-wrapper");
-    const sendDataButton = document.querySelector("#send-data-btn");
-    const uploadContainer = document.querySelector(".upload-container");
-    sendDataButton.style.display = "block";
-    uploadContainer.style.display = "none";
-    pdfWrapper.style.display = "block";
+    document.querySelector('.pdf-wrapper').style.display = 'block';
+    document.querySelector('.upload-container').style.display = 'none';
+    document.getElementById('action-bar').style.display = 'flex';
+}
+
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = `toast ${type} visible`;
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => {
+        toast.classList.remove('visible');
+    }, 3500);
 }
 
 function showContextMenu(event, box) {
@@ -181,8 +219,9 @@ function showContextMenu(event, box) {
 
 async function editHyperlink(box) {
     if (!box) return;
-    
-    const { x, y } = getSelectionCoords();
+    const rect = box.getBoundingClientRect();
+    const x = rect.left + window.scrollX;
+    const y = rect.bottom + window.scrollY;
     let newUrl = await customPrompt("Enter URL", box.dataset.url, x, y);
     if (newUrl) {
         newUrl = processUrl(newUrl);
@@ -218,8 +257,9 @@ function drawSelectionBox(box) {
 
 let selectedAreas = [];
 
-async function addHyperlink(selectionBox) {
-    const { x, y } = getSelectionCoords();
+async function addHyperlink(selectionBox, mouseEvent) {
+    const x = mouseEvent ? mouseEvent.pageX : window.innerWidth / 2;
+    const y = mouseEvent ? mouseEvent.pageY : window.innerHeight / 2;
     const url = processUrl(await customPrompt("Enter URL", "", x, y));
     if (!url) {
         selectionBox.remove();
@@ -241,21 +281,32 @@ async function addHyperlink(selectionBox) {
     selectionBox.style.cursor = "grab";
     selectionBox.dataset.url = url;
 
-    selectedAreas.push({
-        url: url,
-        x: parseFloat(selectionBox.style.left),
-        y: parseFloat(selectionBox.style.top),
-        width: parseFloat(selectionBox.style.width),
-        height: parseFloat(selectionBox.style.height),
-    });
+    const areaData = {
+        linkValue: url,
+        linkType: "URL",
+        pageNumber: currentPage - 1,
+        xNorm: parseFloat(selectionBox.style.left),
+        yNorm: parseFloat(selectionBox.style.top),
+        wNorm: parseFloat(selectionBox.style.width),
+        hNorm: parseFloat(selectionBox.style.height),
+    };
+    selectionBox.dataset.areaIndex = selectedAreas.length;
+    selectedAreas.push(areaData);
 
     hyperlinks.push(selectionBox);
 }
 
 async function renderPage(pageNumber) {
+    const spinner = document.getElementById('pdf-spinner');
     const { canvas, ctx, overlay } = getCanvasElements();
     const page = await pdfInstance.getPage(pageNumber);
-    const scale = 1.5;
+    const naturalViewport = page.getViewport({ scale: 1 });
+    const mainBoard = document.querySelector('.main-board');
+    const availableWidth = (mainBoard ? mainBoard.clientWidth : window.innerWidth) - 60;
+    const availableHeight = (mainBoard ? mainBoard.clientHeight : window.innerHeight) - 120;
+    const scaleW = availableWidth / naturalViewport.width;
+    const scaleH = availableHeight / naturalViewport.height;
+    const scale = Math.min(scaleW, scaleH, 2);
     const viewport = page.getViewport({ scale });
 
     canvas.width = viewport.width;
@@ -274,6 +325,7 @@ async function renderPage(pageNumber) {
 
     renderTask = page.render(renderContext);
     await renderTask.promise;
+    spinner.style.display = 'none';
 }
 
 function getCanvasElements() {
@@ -309,13 +361,18 @@ async function sendDataToBackend() {
     });
 
     try {
-        await fetch('http://localhost:8080/documents', {
+        const res = await fetch('http://localhost:8080/documents', {
             method: "POST",
             body: formData,
-        })
-            .catch(err => console.error("Error sending data:", err));
+        });
+        if (res.ok) {
+            showToast('PDF saved successfully! View it in My Library.', 'success');
+        } else {
+            showToast(`Upload failed (${res.status}). Please try again.`, 'error');
+        }
     } catch (error) {
         console.error("Error sending data:", error);
+        showToast('Could not reach the server. Is the backend running?', 'error');
     }
 }
 

@@ -14,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+
 @Repository
 public class DocumentEntityDAO {
     private final JdbcTemplate jdbcTemplate;
@@ -35,16 +36,16 @@ public class DocumentEntityDAO {
     };
 
     public List<DocumentEntity> getAllDocuments() {
-        String sql = "SELECT s.*, d.*" +
-                "FROM selections s " +
-                "JOIN documents d ON s.id = d.id";
+        String sql = "SELECT d.id AS doc_id, d.filename, d.storage_path, d.mime_type, d.page_count, d.sha256_hex, d.uploaded_at, " +
+                "s.id AS sel_id, s.page_number, s.x_norm, s.y_norm, s.w_norm, s.h_norm, s.link_type, s.link_value " +
+                "FROM documents d " +
+                "LEFT JOIN selections s ON s.document_id = d.id";
 
         Map<Long, DocumentEntity> pdfMap = new LinkedHashMap<>();
 
         jdbcTemplate.query(sql, rs -> {
-            Long pdfId = rs.getLong("d.id");
+            Long pdfId = rs.getLong("doc_id");
 
-            // Create PDFDto if not already in map
             DocumentEntity pdfDto = pdfMap.computeIfAbsent(pdfId, id -> {
                 DocumentEntity dto = new DocumentEntity();
                 dto.setId(pdfId);
@@ -61,18 +62,19 @@ public class DocumentEntityDAO {
                 return dto;
             });
 
-            // Create and add SelectionDto
-            SelectionEntity selection = new SelectionEntity();
-            selection.setId(rs.getLong("id"));
-            selection.setPageNumber(rs.getInt("page_number"));
-            selection.setxNorm(rs.getDouble("x_norm"));
-            selection.setyNorm(rs.getDouble("y_norm"));
-            selection.setwNorm(rs.getDouble("w_norm"));
-            selection.sethNorm(rs.getDouble("h_norm"));
-            selection.setLinkType(LinkType.valueOf(rs.getString("link_type")));
-            selection.setLinkValue(rs.getString("link_value"));
-
-            pdfDto.getSelectionEntities().add(selection);
+            long selId = rs.getLong("sel_id");
+            if (!rs.wasNull()) {
+                SelectionEntity selection = new SelectionEntity();
+                selection.setId(selId);
+                selection.setPageNumber(rs.getInt("page_number"));
+                selection.setxNorm(rs.getDouble("x_norm"));
+                selection.setyNorm(rs.getDouble("y_norm"));
+                selection.setwNorm(rs.getDouble("w_norm"));
+                selection.sethNorm(rs.getDouble("h_norm"));
+                selection.setLinkType(LinkType.valueOf(rs.getString("link_type")));
+                selection.setLinkValue(rs.getString("link_value"));
+                pdfDto.getSelectionEntities().add(selection);
+            }
         });
 
         return new ArrayList<>(pdfMap.values());
@@ -92,7 +94,7 @@ public class DocumentEntityDAO {
     }
 
     public Long addDocument(DocumentEntity data) throws IOException {
-        String sql = "INSERT INTO documents (filename, storage_path, mime_type, page_count, uploaded_at) VALUES (?, ?, ?, ?, ?) RETURNING id";
+        String sql = "INSERT INTO documents (filename, storage_path, mime_type, page_count, sha256_hex, uploaded_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id";
 
         return jdbcTemplate.queryForObject(
                 sql,
@@ -106,12 +108,7 @@ public class DocumentEntityDAO {
         );
     }
 
-    public void deletePDFData(int id){
-//        PdfEntity toDelete = getPDFData(id);
-//        if(toDelete == null || tempPDF.isEmpty() || !tempPDF.contains(toDelete)) {
-//            return false;
-//        }
-//        tempPDF.remove(id);
-//        return true;
+    public void deletePDFData(Long id) {
+        jdbcTemplate.update("DELETE FROM documents WHERE id = ?", id);
     }
 }

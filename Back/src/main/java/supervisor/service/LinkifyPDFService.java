@@ -1,5 +1,9 @@
 package supervisor.service;
 
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.stereotype.Service;
@@ -26,6 +30,8 @@ import java.util.Objects;
 
 @Service
 public class LinkifyPDFService {
+    private static final Logger log = LoggerFactory.getLogger(LinkifyPDFService.class);
+
     @Value("${spring.servlet.multipart.location}")
     private String pdfStoragePath;
     private final DocumentEntityDAO pdfDAO;
@@ -102,15 +108,27 @@ public class LinkifyPDFService {
         List<SelectionEntity> selectionEntities = data.getSelectionEntities();
 
         Path filePath = Paths.get(getPDFPath(), documentEntity.getFilename());
+
+        documentEntity.setStoragePath(getPDFPath());
+        documentEntity.setMimeType("application/pdf");
+        try (PDDocument pdf = Loader.loadPDF(filePath.toFile())) {
+            documentEntity.setPageCount(pdf.getNumberOfPages());
+        }
+
         Path modifiedPdfPath = PdfLinkingUtil.generateLinkedPdf(filePath, selectionEntities, data.getCanvasHeightInPixels());
-        System.out.println(modifiedPdfPath);
-        Files.copy(Files.newInputStream(modifiedPdfPath), modifiedPdfPath, StandardCopyOption.REPLACE_EXISTING);
+        log.info("Generated linked PDF at: {}", modifiedPdfPath);
+        Files.move(modifiedPdfPath, filePath, StandardCopyOption.REPLACE_EXISTING);
 
         Long pdfId = pdfDAO.addDocument(documentEntity);
         selectionEntityDAO.addSelectionData(selectionEntities, pdfId);
     }
 
-    public void deletePdfData(Long id){
-        //return pdfData.deletePDFData(id);
+    public void deletePdfData(Long id) throws IOException {
+        DocumentEntity doc = getPdfData(id);
+        if (doc == null) {
+            throw new PdfEntityNotFoundException(id);
+        }
+        Files.deleteIfExists(Paths.get(getPDFPath(), doc.getFilename()));
+        pdfDAO.deletePDFData(id);
     }
 }
