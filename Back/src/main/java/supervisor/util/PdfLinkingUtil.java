@@ -9,35 +9,37 @@ import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
 import supervisor.model.SelectionEntity;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class PdfLinkingUtil {
     public static Path generateLinkedPdf(Path pdfFile, List<SelectionEntity> areas, double canvasHeightInPixels) throws IOException {
         try (PDDocument document = Loader.loadPDF(pdfFile.toFile())) {
-            PDPage page = document.getPage(0);
-            // Get PDF page dimensions in points
-            PDRectangle mediaBox = page.getMediaBox();
+            Map<Integer, List<SelectionEntity>> byPage = areas.stream()
+                    .collect(Collectors.groupingBy(SelectionEntity::getPageNumber));
 
-            areas.forEach(area -> {
-                PDRectangle rectangle = getPdRectangle(mediaBox, area, canvasHeightInPixels);
-                // Create the hyperlink annotation
-                PDAnnotationLink link = new PDAnnotationLink();
-                link.setRectangle(rectangle);
+            byPage.forEach((pageNum, pageAreas) -> {
+                PDPage page = document.getPage(pageNum);
+                PDRectangle mediaBox = page.getMediaBox();
 
-                // Set the hyperlink action
-                PDActionURI action = new PDActionURI();
-                action.setURI(area.getLinkValue());
-                link.setAction(action);
+                pageAreas.forEach(area -> {
+                    PDRectangle rectangle = getPdRectangle(mediaBox, area, canvasHeightInPixels);
+                    PDAnnotationLink link = new PDAnnotationLink();
+                    link.setRectangle(rectangle);
 
-                // Add the annotation to the page
-                try {
-                    page.getAnnotations().add(link);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                    PDActionURI action = new PDActionURI();
+                    action.setURI(area.getLinkValue());
+                    link.setAction(action);
+
+                    try {
+                        page.getAnnotations().add(link);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
             });
 
             Path tempFile = Files.createTempFile(pdfFile.getParent(), "linked-", ".pdf");

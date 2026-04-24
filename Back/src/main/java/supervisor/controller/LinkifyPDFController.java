@@ -7,6 +7,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import supervisor.DTO.PdfResponseDTO;
 import supervisor.DTO.PdfUploadDTO;
+import supervisor.exception.PdfEntityNotFoundException;
 import supervisor.model.SelectionEntity;
 
 import java.io.IOException;
@@ -34,11 +35,15 @@ public class LinkifyPDFController {
             @RequestPart("json") List<SelectionEntity> selectionEntities,
             @RequestPart("canvasHeight") String canvasHeight
     ) throws IOException {
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.equals("application/pdf")) {
+            return ResponseEntity.badRequest().body("Only PDF files are accepted.");
+        }
 
         PdfUploadDTO dto = new PdfUploadDTO(file, selectionEntities, Float.parseFloat(canvasHeight));
 
         linkifyPDFService.addPdfData(dto);
-        return new ResponseEntity<>(dto, HttpStatus.CREATED);
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @GetMapping("/documents/{id}")
@@ -51,11 +56,17 @@ public class LinkifyPDFController {
     @GetMapping("/documents/{id}/file")
     public ResponseEntity<InputStreamResource> getPdfFile(@PathVariable("id") long id) throws IOException {
         var pdf = linkifyPDFService.getPdfData(id);
+        if (pdf == null) {
+            return ResponseEntity.notFound().build();
+        }
         Path filePath = Path.of(linkifyPDFService.getPDFPath(), pdf.getFilename());
 
         var inputStream = new InputStreamResource(Files.newInputStream(filePath));
 
-        return new ResponseEntity<>(inputStream, HttpStatus.OK);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + pdf.getFilename() + "\"")
+                .body(inputStream);
     }
 
     @GetMapping("/documents")
@@ -68,12 +79,13 @@ public class LinkifyPDFController {
     }
 
     @DeleteMapping("/documents/{id}")
-    public ResponseEntity<?> deletePDFData(@PathVariable Long id){
-//       boolean isDeleted = linkifyPDFService.deletePdfData(id);
-//       if(!isDeleted){
-//           return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-//       }
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<?> deletePDFData(@PathVariable Long id) throws IOException {
+        try {
+            linkifyPDFService.deletePdfData(id);
+            return ResponseEntity.noContent().build();
+        } catch (PdfEntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
 }
