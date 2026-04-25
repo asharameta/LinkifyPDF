@@ -115,12 +115,25 @@ public class LinkifyPDFService {
             documentEntity.setPageCount(pdf.getNumberOfPages());
         }
 
-        Path modifiedPdfPath = PdfLinkingUtil.generateLinkedPdf(filePath, selectionEntities, data.getCanvasHeightInPixels());
+        Path modifiedPdfPath = PdfLinkingUtil.generateLinkedPdf(filePath, selectionEntities);
         log.info("Generated linked PDF at: {}", modifiedPdfPath);
         Files.move(modifiedPdfPath, filePath, StandardCopyOption.REPLACE_EXISTING);
 
         Long pdfId = pdfDAO.addDocument(documentEntity);
         selectionEntityDAO.addSelectionData(selectionEntities, pdfId);
+    }
+
+    @Transactional
+    public void updatePdfData(Long id, List<SelectionEntity> selectionEntities) throws IOException {
+        DocumentEntity doc = getPdfData(id);
+        if (doc == null) throw new PdfEntityNotFoundException(id);
+
+        Path filePath = Paths.get(getPDFPath(), doc.getFilename());
+        Path modifiedPdfPath = PdfLinkingUtil.generateLinkedPdf(filePath, selectionEntities);
+        Files.move(modifiedPdfPath, filePath, StandardCopyOption.REPLACE_EXISTING);
+
+        selectionEntityDAO.deleteSelectionData(id);
+        selectionEntityDAO.addSelectionData(selectionEntities, id);
     }
 
     public void deletePdfData(Long id) throws IOException {

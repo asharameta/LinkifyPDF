@@ -2,6 +2,8 @@ const API_BASE = 'http://localhost:8080';
 
 let currentDocId = null;
 let currentFilename = null;
+let currentRenderTask = null;
+let currentPdfDoc = null;
 
 window.onload = async () => {
     setupActionButtons();
@@ -9,6 +11,11 @@ window.onload = async () => {
 };
 
 function setupActionButtons() {
+    document.getElementById('edit-btn').addEventListener('click', () => {
+        if (!currentDocId) return;
+        window.location.href = `/Pages/HomePage?docId=${currentDocId}`;
+    });
+
     document.getElementById('download-btn').addEventListener('click', () => {
         if (!currentDocId || !currentFilename) return;
         const a = document.createElement('a');
@@ -74,8 +81,9 @@ function createDocCard(entity) {
         ? new Date(entity.uploadedAt).toLocaleDateString()
         : 'Unknown date';
 
+    const displayName = entity.filename.replace(/\.[^/.]+$/, '');
     card.innerHTML = `
-        <div class="doc-card-name">${entity.filename}</div>
+        <div class="doc-card-name" title="${displayName}">${displayName}</div>
         <div class="doc-card-meta">
             <span>${entity.pageCount} page${entity.pageCount !== 1 ? 's' : ''}</span>
             <span>Uploaded ${uploadDate}</span>
@@ -105,7 +113,7 @@ async function selectDocument(entity, card) {
         const blob = await res.blob();
         const arrayBuffer = await blob.arrayBuffer();
 
-        spinner.style.display = 'none';
+        // Keep spinner visible — renderPDF will hide it once the canvas is painted
         await renderPDF(arrayBuffer, entity.selectionEntities || []);
     } catch (err) {
         spinner.style.display = 'none';
@@ -116,36 +124,79 @@ async function selectDocument(entity, card) {
 async function renderPDF(arrayBuffer, selections) {
     const canvas = document.getElementById('pdfCanvas');
     const overlay = document.getElementById('overlay');
+
+    // Cancel the in-flight render and WAIT for it to actually stop.
+    // Just calling cancel() is fire-and-forget; the old render keeps writing
+    // to the canvas until its promise settles, which causes the "same canvas"
+    // error and leaves the canvas in a corrupted / upside-down state.
+    if (currentRenderTask) {
+        currentRenderTask.cancel();
+        try { await currentRenderTask.promise; } catch (_) { /* RenderingCancelledException — expected */ }
+        currentRenderTask = null;
+    }
+
+    // Destroy the previous PDF document to free memory.
+    if (currentPdfDoc) {
+        currentPdfDoc.destroy();
+        currentPdfDoc = null;
+    }
+
     overlay.innerHTML = '';
 
-    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-    const pdfDoc = await loadingTask.promise;
+    const pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    currentPdfDoc = pdfDoc;
+
     const page = await pdfDoc.getPage(1);
 
-    const viewport = page.getViewport({ scale: 1.5 });
-    canvas.width = viewport.width;
+    const naturalViewport = page.getViewport({ scale: 1 });
+    const wrapper = document.getElementById('pdf-wrapper');
+    const availableWidth  = wrapper.clientWidth  - 4;
+    const availableHeight = wrapper.clientHeight - 4;
+    const scale = Math.min(
+        availableWidth  / naturalViewport.width,
+        availableHeight / naturalViewport.height,
+        2
+    );
+    const viewport = page.getViewport({ scale });
+
+    // Setting canvas.width/height clears the canvas and resets the 2D context
+    // (including any leftover transform from a previous render).
+    canvas.width  = viewport.width;
     canvas.height = viewport.height;
-    overlay.style.width = viewport.width + 'px';
+    overlay.style.width  = viewport.width  + 'px';
     overlay.style.height = viewport.height + 'px';
 
-    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
-
-    addHyperlinks(overlay, selections);
+    const ctx = canvas.getContext('2d');
+    const spinner = document.getElementById('preview-spinner');
+    currentRenderTask = page.render({ canvasContext: ctx, viewport });
+    try {
+        await currentRenderTask.promise;
+        spinner.style.display = 'none';
+        addHyperlinks(canvas, overlay, selections);
+    } catch (e) {
+        spinner.style.display = 'none';
+        if (e?.name !== 'RenderingCancelledException') throw e;
+        // A newer render took over — canvas will be redrawn by that task.
+    } finally {
+        currentRenderTask = null;
+    }
 }
 
-function addHyperlinks(overlay, selections) {
+function addHyperlinks(canvas, overlay, selections) {
     selections.forEach(sel => {
         const box = document.createElement('div');
         box.classList.add('selection-box');
-        box.style.left = sel.xNorm + 'px';
-        box.style.top = sel.yNorm + 'px';
-        box.style.width = sel.wNorm + 'px';
-        box.style.height = sel.hNorm + 'px';
+        // xNorm/yNorm/wNorm/hNorm are true 0-1 fractions — scale to canvas pixels
+        box.style.left   = (sel.xNorm * canvas.width)  + 'px';
+        box.style.top    = (sel.yNorm * canvas.height) + 'px';
+        box.style.width  = (sel.wNorm * canvas.width)  + 'px';
+        box.style.height = (sel.hNorm * canvas.height) + 'px';
 
         const link = document.createElement('a');
         link.href = sel.linkValue;
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
+        link.style.cssText = 'display:block;width:100%;height:100%;';
         link.classList.add('hyperlink');
 
         box.appendChild(link);

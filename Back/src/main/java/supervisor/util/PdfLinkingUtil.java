@@ -5,19 +5,31 @@ import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.*;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.interactive.action.*;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
+import supervisor.DTO.ExistingLinkDTO;
 import supervisor.model.SelectionEntity;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class PdfLinkingUtil {
-    public static Path generateLinkedPdf(Path pdfFile, List<SelectionEntity> areas, double canvasHeightInPixels) throws IOException {
+    public static Path generateLinkedPdf(Path pdfFile, List<SelectionEntity> areas) throws IOException {
         try (PDDocument document = Loader.loadPDF(pdfFile.toFile())) {
+            // Remove all existing URI annotations so edits/deletes are reflected
+            for (PDPage p : document.getPages()) {
+                List<PDAnnotation> filtered = p.getAnnotations().stream()
+                        .filter(a -> !(a instanceof PDAnnotationLink la && la.getAction() instanceof PDActionURI))
+                        .collect(Collectors.toList());
+                p.setAnnotations(filtered);
+            }
+
             Map<Integer, List<SelectionEntity>> byPage = areas.stream()
                     .collect(Collectors.groupingBy(SelectionEntity::getPageNumber));
 
@@ -26,7 +38,7 @@ public class PdfLinkingUtil {
                 PDRectangle mediaBox = page.getMediaBox();
 
                 pageAreas.forEach(area -> {
-                    PDRectangle rectangle = getPdRectangle(mediaBox, area, canvasHeightInPixels);
+                    PDRectangle rectangle = getPdRectangle(mediaBox, area);
                     PDAnnotationLink link = new PDAnnotationLink();
                     link.setRectangle(rectangle);
 
@@ -48,23 +60,50 @@ public class PdfLinkingUtil {
         }
     }
 
-    private static PDRectangle getPdRectangle(PDRectangle mediaBox, SelectionEntity area, double canvasHeightInPixels) {
-        float pdfPageHeight = mediaBox.getHeight(); // e.g., 792 for US Letter
-        float pdfPageWidth = mediaBox.getWidth();   // e.g., 612 for US Letter
+    public static List<ExistingLinkDTO> extractExistingLinks(InputStream pdfStream) throws IOException {
+        List<ExistingLinkDTO> result = new ArrayList<>();
+        try (PDDocument document = Loader.loadPDF(pdfStream.readAllBytes())) {
+            for (int i = 0; i < document.getNumberOfPages(); i++) {
+                PDPage page = document.getPage(i);
+                PDRectangle mediaBox = page.getMediaBox();
+                float pageW = mediaBox.getWidth();
+                float pageH = mediaBox.getHeight();
 
-        // Calculate scaling factor (assuming canvas displays the full page height)
-        float scale = (float) (pdfPageHeight / canvasHeightInPixels);
+                for (PDAnnotation ann : page.getAnnotations()) {
+                    if (!(ann instanceof PDAnnotationLink link)) continue;
+                    PDAction action = link.getAction();
+                    if (!(action instanceof PDActionURI uriAction)) continue;
 
-        // Transform canvas coordinates to PDF coordinates
-        float pdfLowerLeftX = (float) (area.getxNorm() * scale);
-        float pdfLowerLeftY = (float) (pdfPageHeight - (area.getyNorm() + area.gethNorm()) * scale);
-        float pdfUpperRightX = (float) ((area.getxNorm() + area.getwNorm()) * scale);
-        float pdfUpperRightY = (float) (pdfPageHeight - area.getyNorm() * scale);
+                    String uri = uriAction.getURI();
+                    String linkType = uri.startsWith("mailto:") ? "MAILTO"
+                                    : uri.startsWith("tel:")    ? "TEL"
+                                    : "URL";
 
-        // Create PDRectangle for the hyperlink
-        return new PDRectangle(pdfLowerLeftX, pdfLowerLeftY,
-                pdfUpperRightX - pdfLowerLeftX,
-                pdfUpperRightY - pdfLowerLeftY);
+                    PDRectangle r = link.getRectangle();
+                    double xNorm = r.getLowerLeftX()  / pageW;
+                    double yNorm = (pageH - r.getLowerLeftY() - r.getHeight()) / pageH;
+                    double wNorm = r.getWidth()  / pageW;
+                    double hNorm = r.getHeight() / pageH;
+
+                    result.add(new ExistingLinkDTO(i, xNorm, yNorm, wNorm, hNorm, linkType, uri));
+                }
+            }
+        }
+        return result;
+    }
+
+    private static PDRectangle getPdRectangle(PDRectangle mediaBox, SelectionEntity area) {
+        float pageW = mediaBox.getWidth();
+        float pageH = mediaBox.getHeight();
+
+        // xNorm/yNorm/wNorm/hNorm are true 0-1 fractions (top-left origin).
+        // PDF coordinate origin is bottom-left, so Y must be flipped.
+        float llx = (float) (area.getxNorm() * pageW);
+        float lly = (float) (pageH - (area.getyNorm() + area.gethNorm()) * pageH);
+        float w   = (float) (area.getwNorm() * pageW);
+        float h   = (float) (area.gethNorm() * pageH);
+
+        return new PDRectangle(llx, lly, w, h);
     }
 }
 

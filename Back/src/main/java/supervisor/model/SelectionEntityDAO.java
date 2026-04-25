@@ -57,6 +57,10 @@ public class SelectionEntityDAO {
         return jdbcTemplate.query(sql, RowMapper, id);
     }
 
+    public void deleteSelectionData(Long documentId) {
+        jdbcTemplate.update("DELETE FROM selections WHERE document_id = ?", documentId);
+    }
+
     public void addSelectionData(List<SelectionEntity> selections, Long documentId) {
         String sql = "INSERT INTO selections (document_id, page_number, x_norm, y_norm, w_norm, h_norm, link_type, link_value) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 

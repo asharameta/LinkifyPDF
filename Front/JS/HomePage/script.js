@@ -5,11 +5,57 @@ let currentPage = 1;
 let renderTask = null;
 let currentSelectionBox = null;
 let hyperlinks = [];
+let editingDocId = null;
 
-window.onload = () => {
+window.onload = async () => {
     createContextMenu();
     createEventHandlers();
+
+    const params = new URLSearchParams(window.location.search);
+    const docId = params.get('docId');
+    if (docId) {
+        await loadDocumentForEditing(parseInt(docId, 10));
+    }
 };
+
+async function loadDocumentForEditing(docId) {
+    editingDocId = docId;
+    document.getElementById('send-data-btn').textContent = 'Update';
+
+    document.querySelector('.upload-container').style.display = 'none';
+    document.getElementById('edit-loading').style.display = 'flex';
+
+    try {
+        const [metaRes, fileRes] = await Promise.all([
+            fetch(`http://localhost:8080/documents/${docId}`),
+            fetch(`http://localhost:8080/documents/${docId}/file`),
+        ]);
+        if (!metaRes.ok) throw new Error(`Metadata fetch failed (${metaRes.status})`);
+        if (!fileRes.ok) throw new Error(`File fetch failed (${fileRes.status})`);
+
+        const meta = await metaRes.json();
+        const savedSelections = meta.pdfEntity?.selectionEntities ?? [];
+
+        const blob = await fileRes.blob();
+        const arrayBuffer = await blob.arrayBuffer();
+
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        pdfInstance = pdf;
+        await renderPage(1);
+
+        document.getElementById('edit-loading').style.display = 'none';
+        updateVisibility();
+
+        if (savedSelections.length > 0) {
+            renderExistingLinks(savedSelections);
+            showToast(`Loaded ${savedSelections.length} saved link${savedSelections.length !== 1 ? 's' : ''}`, 'info');
+        }
+    } catch (e) {
+        console.error('Failed to load document for editing:', e);
+        document.getElementById('edit-loading').style.display = 'none';
+        showToast('Failed to load document: ' + e.message, 'error');
+    }
+}
 
 function createContextMenu() {
     const contextMenu = document.createElement("div");
@@ -58,9 +104,18 @@ function createEventHandlers() {
         await sendDataToBackend();
     });
 
+    document.getElementById('merge-btn').addEventListener('click', () => {
+        mergeLinks(50);
+    });
+
     document.getElementById('reset-btn').addEventListener('click', () => {
+        const prompt = document.getElementById('inline-prompt');
+        if (prompt && prompt.style.display !== 'none') {
+            document.getElementById('inline-prompt-cancel').click();
+        }
         const { overlay } = getCanvasElements();
         overlay.querySelectorAll('.selection-box').forEach(b => b.remove());
+        overlay._existingLinks = null;
         selectedAreas = [];
         hyperlinks = [];
     });
@@ -68,6 +123,7 @@ function createEventHandlers() {
     document.getElementById('new-pdf-btn').addEventListener('click', () => {
         const { overlay } = getCanvasElements();
         overlay.querySelectorAll('.selection-box').forEach(b => b.remove());
+        overlay._existingLinks = null;
         selectedAreas = [];
         hyperlinks = [];
         pdfInstance = null;
@@ -114,7 +170,7 @@ function createEventHandlers() {
             const reader = new FileReader();
             reader.readAsArrayBuffer(file);
             reader.onload = function () {
-                loadPDF(reader.result);
+                loadPDF(reader.result, file);
             };
         } else {
             alert("Please upload a valid PDF file.");
@@ -178,20 +234,104 @@ function createEventHandlers() {
     });
 }
 
-function loadPDF(pdfData) {
+function loadPDF(pdfData, rawFile) {
     const spinner = document.getElementById('pdf-spinner');
     spinner.style.display = 'block';
     pdfjsLib.getDocument({ data: pdfData }).promise
-        .then((pdf) => {
+        .then(async (pdf) => {
             pdfInstance = pdf;
-            renderPage(1);
+            await renderPage(1);
             updateVisibility();
+            if (rawFile) await analyzeExistingLinks(rawFile);
         })
         .catch((error) => {
             console.error("Error loading PDF:", error);
             spinner.style.display = 'none';
         });
 }
+
+async function analyzeExistingLinks(file) {
+    try {
+        const form = new FormData();
+        form.append('file', file);
+        const res = await fetch('http://localhost:8080/pdf/analyze', { method: 'POST', body: form });
+        if (!res.ok) return;
+        const links = await res.json();
+        if (links.length === 0) return;
+        renderExistingLinks(links);
+        showToast(`${links.length} existing link${links.length > 1 ? 's' : ''} found and highlighted`, 'info');
+    } catch (e) {
+        console.warn('Could not analyze existing links:', e);
+    }
+}
+
+function renderExistingLinks(links) {
+    const { canvas, overlay } = getCanvasElements();
+
+    // Register all pages' links into selectedAreas so they survive a Send
+    links.forEach(l => {
+        l._areaIndex = selectedAreas.length;
+        selectedAreas.push({
+            linkValue: l.linkValue,
+            linkType:  l.linkType,
+            pageNumber: l.pageNumber,
+            xNorm: l.xNorm * canvas.width,
+            yNorm: l.yNorm * canvas.height,
+            wNorm: l.wNorm * canvas.width,
+            hNorm: l.hNorm * canvas.height,
+        });
+    });
+
+    overlay._existingLinks = links;
+
+    // Render visual boxes for the current page
+    links
+        .filter(l => l.pageNumber === currentPage - 1)
+        .forEach(l => {
+            const box = makeExistingLinkBox(l, canvas, overlay);
+            hyperlinks.push(box);
+        });
+}
+
+function makeExistingLinkBox(l, canvas, overlay) {
+    const box = document.createElement('div');
+    box.classList.add('selection-box');
+    box.dataset.existing = 'true';
+    box.style.left   = `${l.xNorm * canvas.width}px`;
+    box.style.top    = `${l.yNorm * canvas.height}px`;
+    box.style.width  = `${l.wNorm * canvas.width}px`;
+    box.style.height = `${l.hNorm * canvas.height}px`;
+    box.style.cursor = 'grab';
+    box.title        = l.linkValue;
+    box.dataset.url  = l.linkValue;
+    box.dataset.areaIndex = l._areaIndex;
+
+    const link = document.createElement('a');
+    link.href = l.linkValue;
+    link.target = '_blank';
+    link.classList.add('hyperlink');
+    link.style.cssText = 'width:100%;height:100%;position:absolute;background-color:transparent;z-index:1;';
+    box.appendChild(link);
+
+    overlay.appendChild(box);
+    return box;
+}
+
+window._existingLinksForPage = function(pageIndex) {
+    const { canvas, overlay } = getCanvasElements();
+    overlay.querySelectorAll('.selection-box[data-existing]').forEach(b => {
+        hyperlinks = hyperlinks.filter(h => h !== b);
+        b.remove();
+    });
+    const links = overlay._existingLinks;
+    if (!links) return;
+    links
+        .filter(l => l.pageNumber === pageIndex)
+        .forEach(l => {
+            const box = makeExistingLinkBox(l, canvas, overlay);
+            hyperlinks.push(box);
+        });
+};
 
 function updateVisibility() {
     document.querySelector('.pdf-wrapper').style.display = 'block';
@@ -226,7 +366,11 @@ async function editHyperlink(box) {
     if (newUrl) {
         newUrl = processUrl(newUrl);
         box.dataset.url = newUrl;
-        box.querySelector("a").href = newUrl;
+        box.title = newUrl;
+        const link = box.querySelector("a");
+        if (link) link.href = newUrl;
+        const idx = parseInt(box.dataset.areaIndex, 10);
+        if (!isNaN(idx) && selectedAreas[idx]) selectedAreas[idx].linkValue = newUrl;
     }
     const menu = window.customContextMenu;
     if (menu) menu.style.display = "none";
@@ -337,28 +481,48 @@ function getCanvasElements() {
 }
 
 async function sendDataToBackend() {
+    const { canvas } = getCanvasElements();
+    const cw = canvas.width;
+    const ch = canvas.height;
+    const normalizedAreas = selectedAreas.map(a => ({
+        ...a,
+        xNorm: a.xNorm / cw,
+        yNorm: a.yNorm / ch,
+        wNorm: a.wNorm / cw,
+        hNorm: a.hNorm / ch,
+    }));
+
+    if (editingDocId) {
+        try {
+            const res = await fetch(`http://localhost:8080/documents/${editingDocId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(normalizedAreas),
+            });
+            if (res.ok) {
+                showToast('Document updated! Changes saved to your Library.', 'success');
+            } else {
+                showToast(`Update failed (${res.status}). Please try again.`, 'error');
+            }
+        } catch (error) {
+            console.error('Error updating document:', error);
+            showToast('Could not reach the server. Is the backend running?', 'error');
+        }
+        return;
+    }
+
     const file = document.querySelector('#upload-pdf-file').files[0];
     if (!file) {
         alert("Please upload a PDF file first.");
         return;
     }
-    const { canvas } = getCanvasElements();
-    const formData = new FormData();
 
+    const formData = new FormData();
     formData.append("file", file);
     formData.append("json", new Blob(
-        [JSON.stringify(selectedAreas)],
+        [JSON.stringify(normalizedAreas)],
         { type: "application/json" }
     ));
-    formData.append("canvasHeight", JSON.stringify(canvas.offsetHeight));
-
-
-
-    console.info("Sending data to backend:", {
-        file: formData.get("file"),
-        json: formData.get("json"),
-        offsetHeight: formData.get("canvasHeight")
-    });
 
     try {
         const res = await fetch('http://localhost:8080/documents', {
@@ -382,4 +546,88 @@ function getSelectionCoords() {
     const range = sel.getRangeAt(0).cloneRange();
     const rect = range.getBoundingClientRect();
     return { x: rect.left + window.scrollX, y: rect.bottom + window.scrollY };
-  }
+}
+
+function rectsClose(a, b, tolerance) {
+    const dx = Math.max(0, Math.max(a.xNorm, b.xNorm) - Math.min(a.xNorm + a.wNorm, b.xNorm + b.wNorm));
+    const dy = Math.max(0, Math.max(a.yNorm, b.yNorm) - Math.min(a.yNorm + a.hNorm, b.yNorm + b.hNorm));
+    return Math.sqrt(dx * dx + dy * dy) <= tolerance;
+}
+
+function mergeLinks(tolerance = 50) {
+    if (selectedAreas.length === 0) {
+        showToast('No selections to merge.', 'info');
+        return;
+    }
+
+    const before = selectedAreas.length;
+
+    // Iteratively union pairs that share url+page and are within tolerance
+    let changed = true;
+    while (changed) {
+        changed = false;
+        outer: for (let i = 0; i < selectedAreas.length; i++) {
+            for (let j = i + 1; j < selectedAreas.length; j++) {
+                const a = selectedAreas[i], b = selectedAreas[j];
+                if (a.linkValue !== b.linkValue || a.pageNumber !== b.pageNumber) continue;
+                if (!rectsClose(a, b, tolerance)) continue;
+
+                // Merge b into a
+                const x = Math.min(a.xNorm, b.xNorm);
+                const y = Math.min(a.yNorm, b.yNorm);
+                selectedAreas[i] = {
+                    linkValue:  a.linkValue,
+                    linkType:   a.linkType,
+                    pageNumber: a.pageNumber,
+                    xNorm: x,
+                    yNorm: y,
+                    wNorm: Math.max(a.xNorm + a.wNorm, b.xNorm + b.wNorm) - x,
+                    hNorm: Math.max(a.yNorm + a.hNorm, b.yNorm + b.hNorm) - y,
+                };
+                selectedAreas.splice(j, 1);
+                changed = true;
+                break outer;
+            }
+        }
+    }
+
+    // Rebuild DOM from merged selectedAreas
+    const { overlay } = getCanvasElements();
+    overlay.querySelectorAll('.selection-box, .existing-link-box').forEach(b => b.remove());
+    overlay._existingLinks = null;
+    hyperlinks = [];
+
+    const pageIndex = currentPage - 1;
+    selectedAreas.forEach((a, idx) => {
+        a._areaIndex = idx; // keep in sync for non-visible pages
+        if (a.pageNumber !== pageIndex) return;
+
+        const box = document.createElement('div');
+        box.classList.add('selection-box');
+        box.style.left   = `${a.xNorm}px`;
+        box.style.top    = `${a.yNorm}px`;
+        box.style.width  = `${a.wNorm}px`;
+        box.style.height = `${a.hNorm}px`;
+        box.style.cursor = 'grab';
+        box.dataset.url  = a.linkValue;
+        box.dataset.areaIndex = idx;
+
+        const link = document.createElement('a');
+        link.href = a.linkValue;
+        link.target = '_blank';
+        link.classList.add('hyperlink');
+        link.style.cssText = 'width:100%;height:100%;position:absolute;background-color:transparent;z-index:1;';
+        box.appendChild(link);
+
+        overlay.appendChild(box);
+        hyperlinks.push(box);
+    });
+
+    const after = selectedAreas.length;
+    const merged = before - after;
+    if (merged === 0) {
+        showToast('No links close enough to merge.', 'info');
+    } else {
+        showToast(`Merged ${merged} pair${merged !== 1 ? 's' : ''} → ${after} link${after !== 1 ? 's' : ''} remaining.`, 'success');
+    }
+}
