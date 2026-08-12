@@ -1,3 +1,5 @@
+![CI](https://github.com/asharameta/barbershop-ai-consultant/actions/workflows/ci.yml/badge.svg)
+
 # LinkifyPDF
 
 A full-stack web application that lets you draw selection boxes on PDF pages and embed **native clickable hyperlink annotations** directly into the PDF file using Apache PDFBox.
