@@ -1,4 +1,4 @@
-![CI](https://github.com/asharameta/barbershop-ai-consultant/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/asharameta/LinkifyPDF/actions/workflows/ci.yml/badge.svg)
 
 # LinkifyPDF
 
