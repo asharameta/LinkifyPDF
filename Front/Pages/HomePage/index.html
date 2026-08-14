@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LinkifyPDF — Add Hyperlinks to PDFs</title>
     <link rel="stylesheet" href="/CSS/HomePage/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 
@@ -25,9 +25,9 @@
     <h1 class="logo">LinkifyPDF</h1>
     <nav class="nav">
       <ul class="nav-list">
-        <li><a class="glass-link active" href="/Pages/HomePage/index.html">Linkify PDF</a></li>
-        <li><a class="glass-link" href="/Pages/LibraryPage/index.html">My Library</a></li>
-        <li><a class="glass-link" href="/Pages/OptimizerPage/index.html">PDF Optimizer</a></li>
+        <li><a class="glass-link active" href="/Pages/HomePage">Linkify PDF</a></li>
+        <li><a class="glass-link" href="/Pages/LibraryPage">My Library</a></li>
+        <li><a class="glass-link" href="/Pages/OptimizerPage">PDF Optimizer</a></li>
       </ul>
     </nav>
   </div>
@@ -39,6 +39,10 @@
 <div class="main-content">
     <div class="container">
         <div class="main-board">
+            <div class="edit-loading" id="edit-loading" style="display:none;">
+                <div class="spinner"></div>
+                <p>Loading document…</p>
+            </div>
             <div class="pdf-wrapper">
                 <div class="spinner" id="pdf-spinner" style="display:none;"></div>
                 <canvas id="pdfCanvas"></canvas>
@@ -57,10 +61,34 @@
             <div class="action-bar" id="action-bar">
                 <button class="action-btn btn-secondary" id="new-pdf-btn">New PDF</button>
                 <button class="action-btn btn-secondary" id="reset-btn">Reset Selections</button>
+                <button class="action-btn btn-secondary" id="merge-btn">Merge Links</button>
                 <button class="action-btn btn-primary sendData" id="send-data-btn">Send</button>
             </div>
-
         </div>
+
+        <aside class="help-panel">
+            <h2 class="help-title">Controls</h2>
+            <ul class="help-list">
+                <li class="help-item">
+                    <span class="help-item-name">New PDF</span>
+                    <p class="help-item-desc">Discard the current document and return to the upload screen to start fresh.</p>
+                </li>
+                <li class="help-item">
+                    <span class="help-item-name">Reset Selections</span>
+                    <p class="help-item-desc">Remove all drawn link boxes from the page, including any detected existing links.</p>
+                </li>
+                <li class="help-item">
+                    <span class="help-item-name">Merge Links</span>
+                    <p class="help-item-desc">Automatically combine nearby boxes that point to the same URL into a single area.</p>
+                </li>
+                <li class="help-item">
+                    <span class="help-item-name">Send</span>
+                    <p class="help-item-desc">Embed all link annotations into the PDF and save it to your Library.</p>
+                </li>
+            </ul>
+            <p class="help-hint">Drag on the PDF to draw a link area. Right-click any box to edit or delete it.</p>
+        </aside>
+
         <div id="toast" class="toast"></div>
     </div>
 </div>

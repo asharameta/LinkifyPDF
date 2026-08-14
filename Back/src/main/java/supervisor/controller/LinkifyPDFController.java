@@ -5,10 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import supervisor.DTO.ExistingLinkDTO;
 import supervisor.DTO.PdfResponseDTO;
 import supervisor.DTO.PdfUploadDTO;
 import supervisor.exception.PdfEntityNotFoundException;
 import supervisor.model.SelectionEntity;
+import supervisor.util.PdfLinkingUtil;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -32,15 +34,14 @@ public class LinkifyPDFController {
     @ResponseBody
     public ResponseEntity<?> addPDFData(
             @RequestPart("file") MultipartFile file,
-            @RequestPart("json") List<SelectionEntity> selectionEntities,
-            @RequestPart("canvasHeight") String canvasHeight
+            @RequestPart("json") List<SelectionEntity> selectionEntities
     ) throws IOException {
         String contentType = file.getContentType();
         if (contentType == null || !contentType.equals("application/pdf")) {
             return ResponseEntity.badRequest().body("Only PDF files are accepted.");
         }
 
-        PdfUploadDTO dto = new PdfUploadDTO(file, selectionEntities, Float.parseFloat(canvasHeight));
+        PdfUploadDTO dto = new PdfUploadDTO(file, selectionEntities);
 
         linkifyPDFService.addPdfData(dto);
         return new ResponseEntity<>(HttpStatus.CREATED);
@@ -76,6 +77,27 @@ public class LinkifyPDFController {
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(pdfData);
+    }
+
+    @PostMapping(value = "/pdf/analyze", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<List<ExistingLinkDTO>> analyzeExistingLinks(
+            @RequestPart("file") MultipartFile file
+    ) throws IOException {
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.equals("application/pdf")) {
+            return ResponseEntity.badRequest().build();
+        }
+        List<ExistingLinkDTO> links = PdfLinkingUtil.extractExistingLinks(file.getInputStream());
+        return ResponseEntity.ok(links);
+    }
+
+    @PutMapping(value = "/documents/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> updatePDFData(
+            @PathVariable("id") long id,
+            @RequestBody List<SelectionEntity> selectionEntities
+    ) throws IOException {
+        linkifyPDFService.updatePdfData(id, selectionEntities);
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/documents/{id}")

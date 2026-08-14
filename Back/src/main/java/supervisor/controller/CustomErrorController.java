@@ -32,7 +32,9 @@ public class CustomErrorController implements ErrorController {
                 )
         );
 
-        return ResponseEntity.status((Integer) errorDetails.get("status")).body(errorDetails);
+        Object status = errorDetails.get("status");
+        int statusCode = (status instanceof Integer s) ? s : 500;
+        return ResponseEntity.status(statusCode).body(errorDetails);
     }
 
 

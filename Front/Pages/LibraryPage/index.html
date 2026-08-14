@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Library — LinkifyPDF</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/CSS/LibraryPage/style.css">
     <script src="/JS/LibraryPage/script.js" type="text/javascript"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
@@ -18,9 +18,9 @@
     <h1 class="logo">LinkifyPDF</h1>
     <nav class="nav">
       <ul class="nav-list">
-        <li><a class="glass-link" href="/Pages/HomePage/index.html">Linkify PDF</a></li>
-        <li><a class="glass-link active" href="/Pages/LibraryPage/index.html">My Library</a></li>
-        <li><a class="glass-link" href="/Pages/OptimizerPage/index.html">PDF Optimizer</a></li>
+        <li><a class="glass-link" href="/Pages/HomePage">Linkify PDF</a></li>
+        <li><a class="glass-link active" href="/Pages/LibraryPage">My Library</a></li>
+        <li><a class="glass-link" href="/Pages/OptimizerPage">PDF Optimizer</a></li>
       </ul>
     </nav>
   </div>
@@ -47,12 +47,13 @@
       <div class="doc-actions">
         <span class="doc-filename" id="preview-filename"></span>
         <div class="action-buttons">
+          <button class="btn btn-edit" id="edit-btn">Edit</button>
           <button class="btn btn-download" id="download-btn">Download</button>
           <button class="btn btn-delete" id="delete-btn">Delete</button>
         </div>
       </div>
-      <div class="spinner" id="preview-spinner" style="display:none;"></div>
       <div class="pdf-wrapper" id="pdf-wrapper">
+        <div class="spinner" id="preview-spinner" style="display:none;"></div>
         <canvas id="pdfCanvas"></canvas>
         <div id="overlay"></div>
       </div>
